@@ -106,7 +106,11 @@ export function getDefaultOpusModel(): ModelName {
   if (process.env.ANTHROPIC_DEFAULT_OPUS_MODEL) {
     return process.env.ANTHROPIC_DEFAULT_OPUS_MODEL
   }
-  // 3P providers (Bedrock, Vertex, Foundry) — kept as a separate branch
+  // Ollama: return local model
+  if (getAPIProvider() === 'ollama') {
+    return getDefaultOllamaModel()
+  }
+  // 3P providers (Bedrock, Vertex, Foundry) - kept as a separate branch
   // even when values match, since 3P availability lags firstParty and
   // these will diverge again at the next model launch.
   if (getAPIProvider() !== 'firstParty') {
@@ -120,6 +124,10 @@ export function getDefaultSonnetModel(): ModelName {
   if (process.env.ANTHROPIC_DEFAULT_SONNET_MODEL) {
     return process.env.ANTHROPIC_DEFAULT_SONNET_MODEL
   }
+  // Ollama: return local model
+  if (getAPIProvider() === 'ollama') {
+    return getDefaultOllamaModel()
+  }
   // Default to Sonnet 4.5 for 3P since they may not have 4.6 yet
   if (getAPIProvider() !== 'firstParty') {
     return getModelStrings().sonnet45
@@ -131,6 +139,10 @@ export function getDefaultSonnetModel(): ModelName {
 export function getDefaultHaikuModel(): ModelName {
   if (process.env.ANTHROPIC_DEFAULT_HAIKU_MODEL) {
     return process.env.ANTHROPIC_DEFAULT_HAIKU_MODEL
+  }
+  // Ollama: return local model
+  if (getAPIProvider() === 'ollama') {
+    return getDefaultOllamaModel()
   }
 
   // Haiku 4.5 is available on all platforms (first-party, Foundry, Bedrock, Vertex)
@@ -378,9 +390,29 @@ export function getPublicModelDisplayName(model: ModelName): string | null {
       return 'Haiku 4.5'
     case getModelStrings().haiku35:
       return 'Haiku 3.5'
+    // Ollama local models
+    case 'llama3.3':
+      return 'Llama 3.3 (Ollama)'
+    case 'llama3.2':
+      return 'Llama 3.2 (Ollama)'
+    case 'qwen2.5':
+      return 'Qwen 2.5 (Ollama)'
+    case 'mistral':
+      return 'Mistral (Ollama)'
+    case 'codellama':
+      return 'CodeLlama (Ollama)'
+    case 'phi3':
+      return 'Phi-3 (Ollama)'
     default:
       return null
   }
+}
+
+/**
+ * Get the default model for Ollama provider
+ */
+export function getDefaultOllamaModel(): ModelName {
+  return process.env.OLLAMA_MODEL || 'llama3.3'
 }
 
 function maskModelCodename(baseName: string): string {

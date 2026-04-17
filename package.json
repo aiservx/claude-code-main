@@ -119,6 +119,7 @@
     "yaml": "*",
     "zod": "*",
     "@anthropic-ai/sandbox-runtime": "file:./stubs/@anthropic-ai/sandbox-runtime",
+    "@anthropic-ai/ollama-sdk": "file:./stubs/@anthropic-ai/ollama-sdk",
     "color-diff-napi": "file:./stubs/color-diff-napi",
     "jsonc-parser": "file:./stubs/jsonc-parser"
   },

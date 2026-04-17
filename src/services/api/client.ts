@@ -297,6 +297,19 @@ export async function getAnthropicClient({
     return new AnthropicVertex(vertexArgs) as unknown as Anthropic
   }
 
+  // Ollama: Local AI models via Ollama API
+  if (isEnvTruthy(process.env.CLAUDE_CODE_USE_OLLAMA)) {
+    const { getOllamaBaseUrl } = await import('src/utils/model/providers.js')
+    const { AnthropicOllama } = await import('@anthropic-ai/ollama-sdk')
+
+    const ollamaArgs: ConstructorParameters<typeof AnthropicOllama>[0] = {
+      ...ARGS,
+      baseURL: getOllamaBaseUrl(),
+      ...(isDebugToStdErr() && { logger: createStderrLogger() }),
+    }
+    return new AnthropicOllama(ollamaArgs) as unknown as Anthropic
+  }
+
   // Determine authentication method based on available tokens
   const clientConfig: ConstructorParameters<typeof Anthropic>[0] = {
     apiKey: isClaudeAISubscriber() ? null : apiKey || getAnthropicApiKey(),

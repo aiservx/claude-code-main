@@ -1,0 +1,7 @@
+{
+  "name": "@anthropic-ai/ollama-sdk",
+  "version": "1.0.0",
+  "description": "Ollama SDK compatibility layer for Claude Code",
+  "main": "index.js",
+  "type": "module"
+}
