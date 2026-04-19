@@ -45,36 +45,44 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
   const save = async () => {
     setSaving(true);
     try {
+      // Coerce a possibly-non-numeric setting to a finite integer. We cannot
+      // use `Number(x) || default` because `Number(0)` is falsy and 0 is a
+      // valid user input (it means "disabled" for timeout / circuit-breaker
+      // settings). NaN (empty string, garbage) falls back to `fallback`.
+      const num = (v: unknown, fallback: number): number => {
+        const n = Number(v);
+        return Number.isFinite(n) ? n : fallback;
+      };
       const normalized: Settings = {
         ...s,
-        max_iterations: Math.max(1, Math.min(16, Number(s.max_iterations) || 8)),
+        max_iterations: Math.max(1, Math.min(16, num(s.max_iterations, 8))),
         max_retries_per_task: Math.max(
           0,
-          Math.min(10, Number(s.max_retries_per_task) || 3),
+          Math.min(10, num(s.max_retries_per_task, 3)),
         ),
         max_total_tasks: Math.max(
           1,
-          Math.min(100, Number(s.max_total_tasks) || 20),
+          Math.min(100, num(s.max_total_tasks, 20)),
         ),
         task_timeout_secs: Math.max(
           0,
-          Math.min(3600, Number(s.task_timeout_secs) || 180),
+          Math.min(3600, num(s.task_timeout_secs, 180)),
         ),
         goal_timeout_secs: Math.max(
           0,
-          Math.min(86400, Number(s.goal_timeout_secs) || 3600),
+          Math.min(86400, num(s.goal_timeout_secs, 3600)),
         ),
         retry_backoff_base_ms: Math.max(
           0,
-          Math.min(30000, Number(s.retry_backoff_base_ms) || 1000),
+          Math.min(30000, num(s.retry_backoff_base_ms, 1000)),
         ),
         circuit_breaker_threshold: Math.max(
           0,
-          Math.min(100, Number(s.circuit_breaker_threshold) || 5),
+          Math.min(100, num(s.circuit_breaker_threshold, 5)),
         ),
         max_parallel_tasks: Math.max(
           1,
-          Math.min(8, Number(s.max_parallel_tasks) || 1),
+          Math.min(8, num(s.max_parallel_tasks, 1)),
         ),
         cmd_allow_list: allowListText
           .split("\n")
