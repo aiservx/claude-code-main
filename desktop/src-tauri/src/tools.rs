@@ -287,17 +287,33 @@ pub(crate) async fn execute_write_file_gated(
     ))
 }
 
-/// Returns `Some(true)` when writing `content` to `project_dir/path`
+/// Returns `Some(true)` when writing `content` to `project_dir/sub_path`
 /// would change an existing file, `Some(false)` when the target doesn't
-/// exist (create), the contents are identical (no-op), or the path is
-/// malformed. Returns `None` only in impossible cases — callers treat
-/// `None` as "don't prompt". Kept small so it's easy to unit-test.
+/// exist (create), the contents are identical (no-op), or the path
+/// escapes the sandbox (the eventual `fs_ops::write_file` call will
+/// reject it, so there's nothing for the user to confirm).
+///
+/// Critical: we resolve the target path through [`fs_ops::resolve`],
+/// the **same** resolver `fs_ops::write_file` uses, so the file we
+/// stat here is the exact file the subsequent write will touch.
+/// Using `Path::join` directly was a bypass: a `sub_path` with a
+/// leading `/` would make `join` replace the base, the existence
+/// check would read a nonexistent root-rooted path and return
+/// `Some(false)` (no prompt), while `write_file` would strip the `/`
+/// and silently overwrite a real file inside the project. That is
+/// exactly the destructive write `autonomous_confirm_irreversible`
+/// exists to catch.
 pub(crate) fn write_would_change_existing_file(
     project_dir: &str,
     sub_path: &str,
     content: &str,
 ) -> Option<bool> {
-    let target = std::path::Path::new(project_dir).join(sub_path);
+    let target = match fs_ops::resolve(project_dir, sub_path) {
+        Ok(p) => p,
+        // Sandbox escape or unresolvable root: the real write will
+        // error out, so there's nothing to prompt about.
+        Err(_) => return Some(false),
+    };
     if !target.exists() {
         return Some(false);
     }
@@ -1034,6 +1050,56 @@ mod autonomous_confirm_tests {
             changed,
             Some(true),
             "changing an existing file should prompt when autonomous_confirm is on"
+        );
+        let _ = std::fs::remove_dir_all(&tmp);
+    }
+
+    // Regression for the Devin Review finding on PR #10: the gate used
+    // `Path::new(project_dir).join(sub_path)`, which `join` replaces
+    // with `sub_path` entirely when the latter is absolute. An AI that
+    // emitted `/src/foo.rs` would therefore check `/src/foo.rs` (which
+    // doesn't exist, so Some(false) → no prompt), while the actual
+    // `fs_ops::write_file` call strips the leading `/` and overwrites
+    // the real file inside the project. This assertion pins the fix:
+    // a leading-slash sub_path must still be seen as a destructive
+    // change to the sandboxed file.
+    #[test]
+    fn write_gate_leading_slash_matches_fs_ops_resolution() {
+        let tmp = unique_tempdir("slash");
+        let sub = tmp.join("src");
+        std::fs::create_dir_all(&sub).expect("create subdir");
+        std::fs::write(sub.join("foo.rs"), "old").expect("seed");
+        // NB: sub_path has a leading `/`, exactly the shape the bug
+        // relied on.
+        let changed =
+            write_would_change_existing_file(tmp.to_str().unwrap(), "/src/foo.rs", "new");
+        assert_eq!(
+            changed,
+            Some(true),
+            "leading-slash paths must resolve inside the sandbox like fs_ops::write_file does"
+        );
+        let _ = std::fs::remove_dir_all(&tmp);
+    }
+
+    // Paths that escape the sandbox (e.g. `..` traversal that lands
+    // outside the project root) must NOT trigger a prompt: the actual
+    // `fs_ops::write_file` call will reject them with an error, so
+    // there's no meaningful user decision to make. The gate should
+    // quietly return Some(false) and let the real write fail.
+    #[test]
+    fn write_gate_sandbox_escape_does_not_prompt() {
+        let tmp = unique_tempdir("escape");
+        // Walk far enough above the project root that we land outside,
+        // pointing at /etc/passwd or similar sensitive paths.
+        let changed = write_would_change_existing_file(
+            tmp.to_str().unwrap(),
+            "../../../../../../etc/passwd",
+            "pwned",
+        );
+        assert_eq!(
+            changed,
+            Some(false),
+            "sandbox-escape paths must not trip the confirm modal"
         );
         let _ = std::fs::remove_dir_all(&tmp);
     }
