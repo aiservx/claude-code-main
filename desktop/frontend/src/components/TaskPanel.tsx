@@ -1,0 +1,479 @@
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { api, onEvent } from "../api";
+import type {
+  FailureLogEntry,
+  Task,
+  TaskAddedEvent,
+  TaskCircuitTrippedEvent,
+  TaskFailureLoggedEvent,
+  TaskGoalDoneEvent,
+  TaskGoalStarted,
+  TaskStatus,
+  TaskTrace,
+  TaskTraceEvent,
+  TaskTree,
+  TaskUpdateEvent,
+  TraceEntry,
+} from "../types";
+
+type Props = {
+  projectDir: string | null;
+  disabled?: boolean;
+};
+
+type RunState = "idle" | "running" | "done" | "failed" | "cancelled" | "timeout";
+
+const MAX_VISIBLE_FAILURES = 10;
+
+export function TaskPanel({ projectDir, disabled }: Props) {
+  const [goal, setGoal] = useState("");
+  const [tree, setTree] = useState<TaskTree | null>(null);
+  const [runState, setRunState] = useState<RunState>("idle");
+  const [summary, setSummary] = useState<string | null>(null);
+  const [failures, setFailures] = useState<FailureLogEntry[]>([]);
+  const [circuitTripped, setCircuitTripped] =
+    useState<TaskCircuitTrippedEvent | null>(null);
+  const runningRef = useRef(false);
+
+  // Load any previously-persisted active tree and failures log when the
+  // project opens.
+  useEffect(() => {
+    if (!projectDir) {
+      setTree(null);
+      setRunState("idle");
+      setSummary(null);
+      setFailures([]);
+      setCircuitTripped(null);
+      return;
+    }
+    void api
+      .loadTaskTree(projectDir)
+      .then((loaded) => {
+        if (loaded && typeof loaded === "object" && "tasks" in loaded) {
+          setTree(loaded);
+          // If we find a stale "running" tree on load, the engine isn't
+          // actually running any more — reconcile to idle so the UI doesn't
+          // lie.
+          setRunState(
+            loaded.status === "running" ? "idle" : (loaded.status as RunState),
+          );
+        }
+      })
+      .catch(() => {});
+    void api
+      .loadFailuresLog(projectDir)
+      .then((log) => {
+        if (Array.isArray(log)) {
+          // Show newest first, capped.
+          setFailures(
+            [...log].sort((a, b) => b.at - a.at).slice(0, MAX_VISIBLE_FAILURES),
+          );
+        }
+      })
+      .catch(() => {});
+  }, [projectDir]);
+
+  // Subscribe to task lifecycle events.
+  useEffect(() => {
+    const unlistens: Array<Promise<() => void>> = [];
+    unlistens.push(
+      onEvent<TaskGoalStarted>("task:goal_started", (p) => {
+        setTree({
+          id: p.id,
+          goal: p.goal,
+          tasks: [],
+          created_at: p.created_at,
+          updated_at: p.created_at,
+          status: "running",
+        });
+        setRunState("running");
+        setSummary(null);
+        setCircuitTripped(null);
+      }),
+    );
+    unlistens.push(
+      onEvent<TaskAddedEvent>("task:added", (p) => {
+        setTree((prev) => {
+          if (!prev || prev.id !== p.goal_id) return prev;
+          // Dedupe by id — the backend emits at most once per task, but
+          // React StrictMode (dev) invokes effects twice and we also want
+          // to be defensive against any future replays.
+          if (prev.tasks.some((t) => t.id === p.task.id)) return prev;
+          return { ...prev, tasks: [...prev.tasks, p.task] };
+        });
+      }),
+    );
+    unlistens.push(
+      onEvent<TaskUpdateEvent>("task:update", (p) => {
+        setTree((prev) => {
+          if (!prev || prev.id !== p.goal_id) return prev;
+          // Upsert: if the update arrives before the matching `task:added`
+          // (rare but possible under burst conditions), synthesize a
+          // minimal row so the UI doesn't drop the signal.
+          const existing = prev.tasks.find((t) => t.id === p.id);
+          if (!existing) {
+            const now = Math.floor(Date.now() / 1000);
+            const synthesized: Task = {
+              id: p.id,
+              description: "(task from update event)",
+              status: (p.status ?? "pending") as TaskStatus,
+              retries: p.retries ?? 0,
+              deps: [],
+              result: p.result ?? null,
+              created_at: now,
+              updated_at: p.updated_at ?? now,
+            };
+            return { ...prev, tasks: [...prev.tasks, synthesized] };
+          }
+          return {
+            ...prev,
+            tasks: prev.tasks.map((t) =>
+              t.id === p.id
+                ? {
+                    ...t,
+                    status: p.status ?? t.status,
+                    // Prefer the explicit retries count from the backend;
+                    // only fall back to the `retries_bumped` signal when
+                    // the explicit count is absent.
+                    retries:
+                      typeof p.retries === "number"
+                        ? p.retries
+                        : p.retries_bumped
+                          ? t.retries + 1
+                          : t.retries,
+                    result: p.result ?? t.result,
+                    updated_at: p.updated_at ?? t.updated_at,
+                  }
+                : t,
+            ),
+          };
+        });
+      }),
+    );
+    unlistens.push(
+      onEvent<TaskFailureLoggedEvent>("task:failure_logged", (p) => {
+        setFailures((prev) =>
+          [
+            { at: Math.floor(Date.now() / 1000), task_id: p.task_id, error: p.error },
+            ...prev,
+          ].slice(0, MAX_VISIBLE_FAILURES),
+        );
+      }),
+    );
+    unlistens.push(
+      onEvent<TaskCircuitTrippedEvent>("task:circuit_tripped", (p) => {
+        setCircuitTripped(p);
+      }),
+    );
+    unlistens.push(
+      onEvent<TaskTraceEvent>("task:trace", (p) => {
+        // Apply the fresh trace blob to the matching task. The backend
+        // already enforces per-trace size caps, so we just replace.
+        setTree((prev) => {
+          if (!prev || prev.id !== p.goal_id) return prev;
+          const i = prev.tasks.findIndex((t) => t.id === p.id);
+          if (i < 0) return prev;
+          const next = prev.tasks.slice();
+          next[i] = {
+            ...next[i],
+            trace: p.trace,
+            updated_at: p.updated_at ?? next[i].updated_at,
+          };
+          return { ...prev, tasks: next };
+        });
+      }),
+    );
+    unlistens.push(
+      onEvent<TaskGoalDoneEvent>("task:goal_done", (p) => {
+        setTree((prev) => (prev ? { ...prev, status: p.status } : prev));
+        setRunState(p.status as RunState);
+        setSummary(
+          `${p.completed} completed, ${p.failed} failed — ${p.status}`,
+        );
+        runningRef.current = false;
+      }),
+    );
+    return () => {
+      for (const pr of unlistens) void pr.then((fn) => fn());
+    };
+  }, []);
+
+  const startGoal = useCallback(async () => {
+    if (!projectDir || !goal.trim() || runningRef.current) return;
+    runningRef.current = true;
+    setRunState("running");
+    setSummary(null);
+    setCircuitTripped(null);
+    try {
+      await api.startGoal(projectDir, goal.trim());
+    } catch (e) {
+      setRunState("failed");
+      setSummary(`Goal failed: ${String(e)}`);
+      runningRef.current = false;
+    }
+  }, [projectDir, goal]);
+
+  const cancelGoal = useCallback(async () => {
+    try {
+      await api.cancelGoal();
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  const progress = useMemo(() => {
+    if (!tree || tree.tasks.length === 0) return { done: 0, total: 0, pct: 0 };
+    const done = tree.tasks.filter(
+      (t) => t.status === "done" || t.status === "failed" || t.status === "skipped",
+    ).length;
+    return {
+      done,
+      total: tree.tasks.length,
+      pct: Math.round((done / tree.tasks.length) * 100),
+    };
+  }, [tree]);
+
+  return (
+    <div className="task-panel">
+      <div className="task-goal-row">
+        <textarea
+          className="task-goal-input"
+          placeholder={
+            projectDir
+              ? "Describe a high-level goal, e.g. 'Refactor this project to improve structure'"
+              : "Open a project to set a goal."
+          }
+          value={goal}
+          onChange={(e) => setGoal(e.target.value)}
+          disabled={disabled || runState === "running"}
+          rows={2}
+        />
+        <div className="task-goal-actions">
+          <button
+            onClick={() => void startGoal()}
+            disabled={
+              disabled || !projectDir || !goal.trim() || runState === "running"
+            }
+          >
+            {runState === "running" ? "Running…" : "Start goal"}
+          </button>
+          <button
+            onClick={() => void cancelGoal()}
+            disabled={runState !== "running"}
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+
+      {circuitTripped && (
+        <div className="task-circuit-banner">
+          Circuit breaker tripped after {circuitTripped.consecutive_failures}{" "}
+          consecutive failures (threshold {circuitTripped.threshold}). Goal
+          halted.
+        </div>
+      )}
+
+      {tree && (
+        <div className="task-tree">
+          <div className="task-tree-header">
+            <span className={`task-status-chip task-status-${runState}`}>
+              {runState}
+            </span>
+            <span className="task-progress">
+              {progress.done}/{progress.total} · {progress.pct}%
+            </span>
+            <div className="task-progress-bar">
+              <div
+                className="task-progress-fill"
+                style={{ width: `${progress.pct}%` }}
+              />
+            </div>
+          </div>
+          <div className="task-tree-goal">{tree.goal}</div>
+          {summary && <div className="task-summary">{summary}</div>}
+          <ol className="task-list">
+            {tree.tasks.map((t, i) => (
+              <TaskRow key={t.id} index={i + 1} task={t} trace={t.trace} />
+            ))}
+            {tree.tasks.length === 0 && (
+              <li className="task-empty">
+                Planning… (waiting for task list from planner)
+              </li>
+            )}
+          </ol>
+        </div>
+      )}
+
+      {failures.length > 0 && (
+        <div className="task-failures">
+          <div className="task-failures-header">
+            Recent failures ({failures.length})
+          </div>
+          <ul className="task-failures-list">
+            {failures.map((f) => (
+              <li key={`${f.task_id}-${f.at}`} className="task-failure-row">
+                <span className="task-failure-time">
+                  {new Date(f.at * 1000).toLocaleTimeString()}
+                </span>
+                <span className="task-failure-id">{f.task_id}</span>
+                <span className="task-failure-msg">{f.error}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {!tree && (
+        <div className="empty-state">
+          The autonomous task engine will decompose your goal into tasks and
+          execute them in order. You will see each task's status here.
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TaskRow({
+  index,
+  task,
+  trace,
+}: {
+  index: number;
+  task: Task;
+  trace?: TaskTrace;
+}) {
+  const [open, setOpen] = useState(false);
+  const hasTrace = !!trace && trace.entries.length > 0;
+  return (
+    <li className={`task-row task-row-${task.status}`}>
+      <span className={`task-dot task-dot-${task.status}`} />
+      <span className="task-index">{index}.</span>
+      <div className="task-body">
+        <div className="task-desc">{task.description}</div>
+        {task.retries > 0 && (
+          <div className="task-retries">retries: {task.retries}</div>
+        )}
+        {task.result && <div className="task-result">{task.result}</div>}
+        {hasTrace && (
+          <button
+            className="task-trace-toggle"
+            onClick={() => setOpen((v) => !v)}
+            aria-expanded={open}
+          >
+            {open ? "▾" : "▸"} Trace ({trace!.entries.length}
+            {trace!.truncated ? "+" : ""} entries)
+          </button>
+        )}
+        {open && hasTrace && <TraceView trace={trace!} />}
+      </div>
+      <span className={`task-badge task-badge-${task.status}`}>
+        {statusLabel(task.status)}
+      </span>
+    </li>
+  );
+}
+
+function TraceView({ trace }: { trace: TaskTrace }) {
+  return (
+    <ol className="task-trace-list">
+      {trace.entries.map((e, i) => (
+        <li key={i} className={`task-trace-entry task-trace-${e.kind}`}>
+          <TraceEntryRow entry={e} />
+        </li>
+      ))}
+      {trace.truncated && (
+        <li className="task-trace-truncated">
+          older entries were truncated to stay within the per-task cap
+        </li>
+      )}
+    </ol>
+  );
+}
+
+function TraceEntryRow({ entry }: { entry: TraceEntry }) {
+  switch (entry.kind) {
+    case "user":
+      return (
+        <>
+          <span className="task-trace-label">user</span>
+          <span className="task-trace-text">{entry.text}</span>
+        </>
+      );
+    case "plan":
+      return (
+        <>
+          <span className="task-trace-label">plan</span>
+          <pre className="task-trace-block">{entry.text}</pre>
+        </>
+      );
+    case "assistant":
+      return (
+        <>
+          <span className="task-trace-label">{entry.role}</span>
+          <span className="task-trace-text">{entry.text}</span>
+        </>
+      );
+    case "tool_call":
+      return (
+        <>
+          <span className="task-trace-label">→ {entry.name}</span>
+          <pre className="task-trace-block">{entry.args}</pre>
+        </>
+      );
+    case "tool_result":
+      return (
+        <>
+          <span
+            className={`task-trace-label task-trace-${
+              entry.ok ? "ok" : "err"
+            }`}
+          >
+            {entry.ok ? "← ok" : "← err"}
+          </span>
+          <pre className="task-trace-block">
+            {entry.output}
+            {entry.diff ? `\n${entry.diff}` : ""}
+          </pre>
+        </>
+      );
+    case "review":
+      return (
+        <>
+          <span className="task-trace-label">review: {entry.verdict}</span>
+          <span className="task-trace-text">{entry.text}</span>
+        </>
+      );
+    case "retry":
+      return (
+        <>
+          <span className="task-trace-label">retry #{entry.attempt}</span>
+          <span className="task-trace-text">{entry.reason}</span>
+        </>
+      );
+    case "error":
+      return (
+        <>
+          <span className="task-trace-label task-trace-err">
+            error ({entry.role})
+          </span>
+          <span className="task-trace-text">{entry.message}</span>
+        </>
+      );
+  }
+}
+
+function statusLabel(s: TaskStatus): string {
+  switch (s) {
+    case "pending":
+      return "pending";
+    case "running":
+      return "running";
+    case "done":
+      return "done";
+    case "failed":
+      return "failed";
+    case "skipped":
+      return "skipped";
+  }
+}

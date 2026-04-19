@@ -1,0 +1,11 @@
+/.codex-home
+/dist
+/node_modules
+/package-lock.json
+
+# Tauri / Desktop
+/desktop/src-tauri/target/
+/desktop/src-tauri/gen/
+/desktop/frontend/node_modules/
+/desktop/frontend/dist/
+/desktop/dist/
