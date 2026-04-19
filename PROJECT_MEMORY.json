@@ -43,7 +43,6 @@
         "ai.rs": "Planner/Executor/Reviewer streaming loop, run_chat_turn reusable by controller",
         "cancel.rs": "CancelToken primitive + CancelReason enum (User/Goal/Timeout/CircuitOpen), async cancelled() future, link_from() propagator",
         "controller.rs": "start_goal top-level autonomous loop; plan -> execute -> review -> retry -> archive; enforces task/goal timeouts and circuit breaker",
-        "cost.rs": "cost accounting scaffold (not wired, paused by user)",
         "fs_ops.rs": "path sandbox (resolve strips leading separators, walks .. virtually, canonicalizes, rejects escapes)",
         "memory.rs": "atomic temp-file + rename PROJECT_MEMORY.json writes, size ceiling 4 MiB, schema_version = 2, migrate_memory()",
         "project_scan.rs": "languages / entry points / configs / deps / workspace detection",
@@ -208,7 +207,7 @@
     "pr_10": { "url": "https://github.com/salonadel6-sudo/open-claude-code-main/pull/10", "state": "merged", "title": "desktop: autonomous_confirm_irreversible setting — force confirm modal for irreversible ops" },
     "pr_11": { "url": "https://github.com/salonadel6-sudo/open-claude-code-main/pull/11", "state": "merged", "title": "desktop: fix write-gate path bypass in autonomous_confirm_irreversible (addresses PR #10 Devin Review)" },
     "paused": [
-      "Per-goal cost accounting (#4 in the original follow-up queue): local-first, not a real requirement right now. Scaffold (cost.rs) on disk, not wired."
+      "Per-goal cost accounting (#4 in the original follow-up queue): local-first, not a real requirement right now. No code landed; no cost.rs module exists in tree."
     ],
     "optional_follow_ups": [
       "Parallel task execution (scaffold in max_parallel_tasks)",

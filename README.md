@@ -1,18 +1,27 @@
 # Open Claude Code — Desktop
 
-A **controlled autonomous coding system** that runs locally against your own
-filesystem and your own Ollama install. You give it a goal, it plans the work
-into a task tree, runs the tasks through a Planner → Executor → Reviewer loop,
-and you keep full visibility and full control: mid-flight cancel, subprocess
+> **Research snapshot.** This repository is a recovered Claude Code source
+> snapshot intended for educational study, defensive security research,
+> architecture review, and supply-chain analysis. It is **not** an official
+> Anthropic repository. See [`AGENTS.md`](AGENTS.md) / [`CLAUDE.md`](CLAUDE.md)
+> for the full context.
+
+The `desktop/` subtree documented below is an **independent, self-contained
+Tauri + React application** built on top of this snapshot: a **controlled
+autonomous coding system** that runs locally against your own filesystem and
+your own Ollama install. You give it a goal, it plans the work into a task
+tree, runs the tasks through a Planner → Executor → Reviewer loop, and you
+keep full visibility and full control: mid-flight cancel, subprocess
 tree-kill, per-task execution trace, and optional human confirmation on
 irreversible operations.
 
-This repo is **local-first**. There are no mandatory cloud dependencies. An
-OpenRouter key is supported as an optional planner, but everything including
-autonomous goal execution works end-to-end with Ollama alone.
+The desktop app is **local-first**. There are no mandatory cloud dependencies.
+An OpenRouter key is supported as an optional planner, but everything
+including autonomous goal execution works end-to-end with Ollama alone.
 
-> The legacy `src/` folder is a read-only research snapshot and is not part of
-> the running system. All product code lives under `desktop/`.
+> The legacy `src/` folder is part of the read-only research snapshot and is
+> not part of the running desktop system. All product code for the system
+> described in this README lives under `desktop/`.
 
 ---
 

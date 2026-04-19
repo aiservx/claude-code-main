@@ -126,10 +126,11 @@ user prompt
 ### Intentionally out of scope (paused)
 
 - **Per-goal cost accounting.** Explicitly paused by the user: this is a
-  local-first system and token spend isn't a real constraint. The scaffold
-  (`cost.rs` file on disk, not wired) can be revived later as an optional
-  feature; the current system has bounded execution (timeouts + circuit
-  breaker + retry caps) even without it.
+  local-first system and token spend isn't a real constraint. No code landed
+  (the branch was dropped, there is no `cost.rs` in the tree). The design
+  notes above can be revived later as an optional feature; the current
+  system has bounded execution (timeouts + circuit breaker + retry caps)
+  even without it.
 
 ### 3.1 Blockers
 

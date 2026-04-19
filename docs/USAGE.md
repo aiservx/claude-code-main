@@ -270,8 +270,8 @@ of "read file, edit, run, repeat". Take over when:
 
 ## Screenshots
 
-Real UI screenshots (main view, expanded trace panel, confirm modal,
-autonomous run in progress) are captured against a locally-running
-instance with a real project opened and real Ollama models responding.
-They live under [`screenshots/`](screenshots/) — each file is named
-after the state it documents.
+_Screenshots are not yet captured in this snapshot._ They will be added
+under `docs/screenshots/` once the UI has been exercised against a real
+project with real Ollama models responding. Until then, the text in this
+guide (UI layout, Trace table, cancel paths, etc.) is the reference —
+everything described above reflects the code actually in tree.
