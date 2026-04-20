@@ -75,6 +75,21 @@ export const api = {
       available_models: string[];
     }>("probe_ollama", { baseUrl: base_url, model: model ?? null }),
 
+  /**
+   * Detailed OpenRouter probe using form-level API key + model. Mirrors
+   * `probeOllama`. Returns reachability, key validity, model catalog
+   * membership, and remaining credits when OpenRouter reports them.
+   */
+  probeOpenrouter: (api_key: string, model?: string) =>
+    invoke<{
+      reachable: boolean;
+      key_valid: boolean;
+      model_available: boolean;
+      error: string | null;
+      available_models: string[];
+      credits_remaining: number | null;
+    }>("probe_openrouter", { apiKey: api_key, model: model ?? null }),
+
   /** Resolve a pending `ai:confirm_request` (run_cmd safety gate). */
   confirmCmd: (id: string, approved: boolean) =>
     invoke<void>("confirm_cmd", { id, approved }),

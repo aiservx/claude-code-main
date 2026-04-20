@@ -42,6 +42,7 @@ use tauri::{AppHandle, Emitter};
 use tracing::warn;
 
 use crate::cancel::CancelToken;
+use crate::settings::ProviderMode;
 use crate::{memory, tools, AppState, Settings};
 
 // Hard caps that protect the UI from runaway behavior even if the model
@@ -135,6 +136,77 @@ impl Role {
     }
 }
 
+/// Which backend actually serves a role for a single call. A `Role` is
+/// mapped to a primary `Provider` (and optional fallback) by
+/// [`resolve_provider`], which consults [`ProviderMode`] on `Settings`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Provider {
+    OpenRouter,
+    Ollama,
+}
+
+impl Provider {
+    fn as_str(self) -> &'static str {
+        match self {
+            Provider::OpenRouter => "openrouter",
+            Provider::Ollama => "ollama",
+        }
+    }
+}
+
+/// Pick the primary provider (and optional fallback) for a role given the
+/// configured `ProviderMode`:
+///
+/// - `Cloud`   → `(OpenRouter, None)` for every role. No fallback.
+/// - `Local`   → `(Ollama, None)` for every role. No fallback.
+/// - `Hybrid`  → planner + reviewer prefer OpenRouter with Ollama as
+///   fallback (reasoning quality matters more than cost), executor
+///   prefers Ollama with OpenRouter as fallback (tool throughput matters
+///   more than reasoning quality).
+fn resolve_provider(settings: &Settings, role: Role) -> (Provider, Option<Provider>) {
+    match settings.provider_mode {
+        ProviderMode::Cloud => (Provider::OpenRouter, None),
+        ProviderMode::Local => (Provider::Ollama, None),
+        ProviderMode::Hybrid => match role {
+            Role::Planner | Role::Reviewer => {
+                (Provider::OpenRouter, Some(Provider::Ollama))
+            }
+            Role::Executor => (Provider::Ollama, Some(Provider::OpenRouter)),
+        },
+    }
+}
+
+/// Per-role model override. When the role-specific slot is non-empty it
+/// is used verbatim; otherwise the dispatcher falls back to the
+/// provider's default model (`openrouter_model` / `ollama_model`). This
+/// lets a user run, e.g., a cheap router for the planner and a beefier
+/// one for the reviewer without touching the executor model.
+fn model_for_role(settings: &Settings, role: Role, provider: Provider) -> String {
+    let per_role = match role {
+        Role::Planner => &settings.planner_model,
+        Role::Executor => &settings.executor_model,
+        Role::Reviewer => &settings.reviewer_model,
+    };
+    if !per_role.trim().is_empty() {
+        return per_role.clone();
+    }
+    match provider {
+        Provider::OpenRouter => settings.openrouter_model.clone(),
+        Provider::Ollama => settings.ollama_model.clone(),
+    }
+}
+
+/// Cheap guard used by the fallback path so we don't try a second
+/// provider that is clearly not configured (e.g. OpenRouter without an
+/// API key). Ollama has no auth so it is always "configured"; if it is
+/// actually unreachable the request will fail loudly.
+fn provider_has_credentials(settings: &Settings, provider: Provider) -> bool {
+    match provider {
+        Provider::OpenRouter => !settings.openrouter_api_key.trim().is_empty(),
+        Provider::Ollama => true,
+    }
+}
+
 // ---------- UI message format ----------
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -189,6 +261,17 @@ pub struct StepSummary {
     pub role: String,
     pub title: String,
     pub status: String, // "done" | "failed"
+    /// Provider actually routed for this step (`"openrouter"` or
+    /// `"ollama"`). Set at emit time based on `resolve_provider` for
+    /// the role; left out of the payload when the step is not tied to
+    /// a model call. The UI uses this to badge timeline entries.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub provider: Option<String>,
+    /// Concrete model identifier sent on the wire (e.g.
+    /// `"openrouter/auto"` or `"deepseek-coder:6.7b"`). Same lifecycle
+    /// as `provider` — only present on model-call steps.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub model: Option<String>,
 }
 
 // ---------- Wire messages (OpenAI-shaped) ----------
@@ -504,6 +587,7 @@ async fn stream_openrouter(
 async fn stream_ollama(
     app: &AppHandle,
     settings: &Settings,
+    model_override: Option<&str>,
     messages: &[WireMessage],
     tools_schema: Option<&Value>,
     role: Role,
@@ -514,7 +598,7 @@ async fn stream_ollama(
     }
     let url = format!("{}/api/chat", settings.ollama_base_url.trim_end_matches('/'));
     let mut body = json!({
-        "model": settings.ollama_model,
+        "model": model_override.unwrap_or(&settings.ollama_model),
         "messages": messages,
         "stream": true,
     });
@@ -588,39 +672,132 @@ async fn stream_ollama(
     Ok(acc.finalize())
 }
 
-/// Try the executor via Ollama first; if Ollama fails and an OpenRouter
-/// API key is configured, fall back to OpenRouter so the task doesn't
-/// fail immediately when the local model is down.
-async fn call_executor_with_fallback(
+/// Dispatch a single model call for an agent `role`, routing through
+/// the provider matrix configured on `Settings` (see
+/// [`resolve_provider`]).
+///
+/// Contract:
+/// 1. Resolve `(primary, fallback)` for the role.
+/// 2. Call the primary provider with the role's resolved model (the
+///    per-role override when set, else the provider default).
+/// 3. On primary failure, emit `ai:error` with `{provider, model,
+///    role}` so the UI can surface the provider swap, then — if a
+///    fallback exists and has credentials — retry on the fallback with
+///    its own resolved model.
+/// 4. If both fail, return a combined error string mentioning both
+///    attempts. If the fallback was skipped (no credentials), return
+///    the primary error verbatim.
+///
+/// This replaces the legacy `call_executor_with_fallback` (which was
+/// Ollama-first regardless of mode). Every site that previously called
+/// `stream_openrouter` / `stream_ollama` directly should go through
+/// here so provider routing is consistent across planner, executor,
+/// and reviewer.
+async fn call_model(
     app: &AppHandle,
     settings: &Settings,
-    messages: &[WireMessage],
-    tools_schema: &Value,
     role: Role,
+    messages: &[WireMessage],
+    tools_schema: Option<&Value>,
     cancel: &CancelToken,
 ) -> Result<WireMessage, String> {
-    match stream_ollama(app, settings, messages, Some(tools_schema), role, cancel).await {
+    let (primary, fallback) = resolve_provider(settings, role);
+    let primary_model = model_for_role(settings, role, primary);
+    match call_provider(
+        app,
+        settings,
+        primary,
+        &primary_model,
+        role,
+        messages,
+        tools_schema,
+        cancel,
+    )
+    .await
+    {
         Ok(msg) => Ok(msg),
-        Err(ollama_err) => {
-            // Only attempt fallback when an OpenRouter key is available.
-            if settings.openrouter_api_key.is_empty() {
-                return Err(ollama_err);
+        Err(primary_err) => {
+            // A user-initiated cancel is not a failure we should mask
+            // by retrying on the fallback provider — bubble it up so
+            // the turn unwinds immediately.
+            if cancel.is_cancelled() {
+                return Err(primary_err);
             }
-            warn!("executor failed on Ollama, falling back to OpenRouter: {ollama_err}");
+            let Some(fb) = fallback else {
+                return Err(primary_err);
+            };
+            if !provider_has_credentials(settings, fb) {
+                return Err(primary_err);
+            }
+            let fb_model = model_for_role(settings, role, fb);
+            warn!(
+                "{} on {} failed, falling back to {}: {}",
+                role.as_str(),
+                primary.as_str(),
+                fb.as_str(),
+                primary_err
+            );
             let _ = app.emit(
                 "ai:error",
                 json!({
-                    "message": format!("Ollama failed ({ollama_err}), trying OpenRouter…"),
+                    "message": format!(
+                        "{} failed ({}), trying {}…",
+                        primary.as_str(),
+                        primary_err,
+                        fb.as_str(),
+                    ),
                     "role": role.as_str(),
+                    "provider": primary.as_str(),
+                    "model": primary_model,
+                    "fallback_provider": fb.as_str(),
+                    "fallback_model": fb_model,
                 }),
             );
-            stream_openrouter(app, settings, None, messages, Some(tools_schema), role, cancel)
+            call_provider(
+                app,
+                settings,
+                fb,
+                &fb_model,
+                role,
+                messages,
+                tools_schema,
+                cancel,
+            )
+            .await
+            .map_err(|fb_err| {
+                format!(
+                    "both providers failed — {}: {}; {}: {}",
+                    primary.as_str(),
+                    primary_err,
+                    fb.as_str(),
+                    fb_err,
+                )
+            })
+        }
+    }
+}
+
+/// Thin wrapper that routes to the concrete `stream_*` implementation
+/// for a given provider. Kept as a separate function so both the
+/// primary and the fallback branches of [`call_model`] go through
+/// identical plumbing.
+async fn call_provider(
+    app: &AppHandle,
+    settings: &Settings,
+    provider: Provider,
+    model: &str,
+    role: Role,
+    messages: &[WireMessage],
+    tools_schema: Option<&Value>,
+    cancel: &CancelToken,
+) -> Result<WireMessage, String> {
+    match provider {
+        Provider::OpenRouter => {
+            stream_openrouter(app, settings, Some(model), messages, tools_schema, role, cancel)
                 .await
-                .map_err(|or_err| {
-                    format!(
-                        "both providers failed — Ollama: {ollama_err}; OpenRouter: {or_err}"
-                    )
-                })
+        }
+        Provider::Ollama => {
+            stream_ollama(app, settings, Some(model), messages, tools_schema, role, cancel).await
         }
     }
 }
@@ -637,8 +814,12 @@ pub async fn check_planner(state: tauri::State<'_, AppState>) -> Result<bool, St
 pub async fn check_executor(state: tauri::State<'_, AppState>) -> Result<bool, String> {
     let base = state.settings.read().unwrap().ollama_base_url.clone();
     let url = format!("{}/api/tags", base.trim_end_matches('/'));
+    // 10s (up from 3s): the first probe after launching `ollama serve`
+    // can stall for several seconds while the daemon warms up its
+    // model index, and a remote/LAN Ollama easily loses the race on a
+    // 3s budget even when it is perfectly healthy.
     let client = reqwest::Client::builder()
-        .timeout(std::time::Duration::from_secs(3))
+        .timeout(std::time::Duration::from_secs(10))
         .build()
         .map_err(|e| e.to_string())?;
     match client.get(&url).send().await {
@@ -668,8 +849,10 @@ pub async fn probe_ollama(
     model: Option<String>,
 ) -> Result<OllamaProbeResult, String> {
     let url = format!("{}/api/tags", base_url.trim_end_matches('/'));
+    // See `check_executor` — 10s accommodates cold-start and remote
+    // Ollama daemons that briefly block the first `/api/tags` call.
     let client = match reqwest::Client::builder()
-        .timeout(std::time::Duration::from_secs(3))
+        .timeout(std::time::Duration::from_secs(10))
         .build()
     {
         Ok(c) => c,
@@ -755,6 +938,190 @@ pub async fn probe_ollama(
     })
 }
 
+/// Detailed connection probe for the OpenRouter planner/reviewer.
+/// Mirrors [`probe_ollama`]: it takes the form-level `api_key` and
+/// `model` so Settings can test unsaved values, and it answers every
+/// reachability / auth / model-availability question in one round-trip
+/// so the UI can render a single line of feedback.
+///
+/// OpenRouter exposes `/api/v1/models` without authentication, so
+/// `reachable` is answered from that. `/api/v1/auth/key` validates the
+/// API key; a successful response populates `key_valid` and (when the
+/// API includes it) a rough `credits_remaining` dollar amount. When a
+/// `model` is provided, it is matched against the `/api/v1/models`
+/// listing so the UI can warn before the user pays for a failed chat.
+#[derive(serde::Serialize)]
+pub struct OpenRouterProbeResult {
+    pub reachable: bool,
+    pub key_valid: bool,
+    pub model_available: bool,
+    pub error: Option<String>,
+    pub available_models: Vec<String>,
+    /// Remaining credits in USD, as reported by `/api/v1/auth/key`.
+    /// `None` when the endpoint did not return a credit balance.
+    pub credits_remaining: Option<f64>,
+}
+
+#[tauri::command]
+pub async fn probe_openrouter(
+    api_key: String,
+    model: Option<String>,
+) -> Result<OpenRouterProbeResult, String> {
+    // 10s matches `probe_ollama` — cold CDN edges and slow DNS can
+    // briefly exceed a 3s budget even when OpenRouter is healthy.
+    let client = match reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(10))
+        .build()
+    {
+        Ok(c) => c,
+        Err(e) => {
+            return Ok(OpenRouterProbeResult {
+                reachable: false,
+                key_valid: false,
+                model_available: false,
+                error: Some(e.to_string()),
+                available_models: Vec::new(),
+                credits_remaining: None,
+            });
+        }
+    };
+
+    // 1) Reachability + model catalog — works without auth.
+    let models_resp = match client
+        .get("https://openrouter.ai/api/v1/models")
+        .send()
+        .await
+    {
+        Ok(r) => r,
+        Err(e) => {
+            return Ok(OpenRouterProbeResult {
+                reachable: false,
+                key_valid: false,
+                model_available: false,
+                error: Some(format!("cannot reach openrouter.ai: {}", e)),
+                available_models: Vec::new(),
+                credits_remaining: None,
+            });
+        }
+    };
+    if !models_resp.status().is_success() {
+        return Ok(OpenRouterProbeResult {
+            reachable: false,
+            key_valid: false,
+            model_available: false,
+            error: Some(format!(
+                "openrouter /api/v1/models returned {}",
+                models_resp.status()
+            )),
+            available_models: Vec::new(),
+            credits_remaining: None,
+        });
+    }
+    let models_body: Value = match models_resp.json().await {
+        Ok(v) => v,
+        Err(e) => {
+            return Ok(OpenRouterProbeResult {
+                reachable: true,
+                key_valid: false,
+                model_available: false,
+                error: Some(format!("could not parse /api/v1/models: {}", e)),
+                available_models: Vec::new(),
+                credits_remaining: None,
+            });
+        }
+    };
+    let names: Vec<String> = models_body
+        .get("data")
+        .and_then(|d| d.as_array())
+        .map(|arr| {
+            arr.iter()
+                .filter_map(|m| m.get("id").and_then(|n| n.as_str()).map(String::from))
+                .collect()
+        })
+        .unwrap_or_default();
+    let model_available = match model.as_deref() {
+        Some(want) if !want.is_empty() => {
+            // `openrouter/auto` is a special router — it is always
+            // accepted by the API even though it isn't listed in the
+            // models catalog.
+            if want == "openrouter/auto" {
+                true
+            } else {
+                names.iter().any(|n| n == want)
+            }
+        }
+        _ => true,
+    };
+
+    // 2) Key validity — requires auth. Skip if empty key (common on
+    // first run); report `key_valid = false` rather than an error.
+    if api_key.trim().is_empty() {
+        return Ok(OpenRouterProbeResult {
+            reachable: true,
+            key_valid: false,
+            model_available,
+            error: Some("no API key provided".to_string()),
+            available_models: names,
+            credits_remaining: None,
+        });
+    }
+    let auth_resp = match client
+        .get("https://openrouter.ai/api/v1/auth/key")
+        .bearer_auth(&api_key)
+        .send()
+        .await
+    {
+        Ok(r) => r,
+        Err(e) => {
+            return Ok(OpenRouterProbeResult {
+                reachable: true,
+                key_valid: false,
+                model_available,
+                error: Some(format!("auth check failed: {}", e)),
+                available_models: names,
+                credits_remaining: None,
+            });
+        }
+    };
+    if !auth_resp.status().is_success() {
+        let status = auth_resp.status();
+        return Ok(OpenRouterProbeResult {
+            reachable: true,
+            key_valid: false,
+            model_available,
+            error: Some(format!("API key rejected (HTTP {})", status)),
+            available_models: names,
+            credits_remaining: None,
+        });
+    }
+    let auth_body: Value = auth_resp.json().await.unwrap_or(Value::Null);
+    // OpenRouter reports remaining credits as `limit_remaining` or
+    // `limit - usage` under `data`; we try the obvious keys and
+    // silently skip when the shape changes.
+    let credits_remaining = auth_body
+        .get("data")
+        .and_then(|d| {
+            d.get("limit_remaining")
+                .and_then(|v| v.as_f64())
+                .or_else(|| {
+                    let limit = d.get("limit").and_then(|v| v.as_f64());
+                    let usage = d.get("usage").and_then(|v| v.as_f64());
+                    match (limit, usage) {
+                        (Some(l), Some(u)) => Some(l - u),
+                        _ => None,
+                    }
+                })
+        });
+    Ok(OpenRouterProbeResult {
+        reachable: true,
+        key_valid: true,
+        model_available,
+        error: None,
+        available_models: names,
+        credits_remaining,
+    })
+}
+
 #[tauri::command]
 pub fn cancel_chat(state: tauri::State<'_, AppState>) -> Result<(), String> {
     // Trip the cooperative cancel token. Wakes every `cancelled()` awaiter
@@ -806,7 +1173,19 @@ pub(crate) async fn run_chat_turn(
     let cancel = turn_cancel_token(state);
 
     let settings = state.settings.read().unwrap().clone();
-    let use_planner = !settings.openrouter_api_key.is_empty();
+    // The planner runs when its resolved provider chain has credentials.
+    // In `Local` mode this is always true (Ollama needs no auth); in
+    // `Cloud` mode it requires an OpenRouter key; in `Hybrid` mode we
+    // accept the planner as long as *either* OpenRouter or its Ollama
+    // fallback is reachable (the dispatcher will pick the one that
+    // works per call via [`call_model`]).
+    let use_planner = {
+        let (primary, fallback) = resolve_provider(&settings, Role::Planner);
+        provider_has_credentials(&settings, primary)
+            || fallback
+                .map(|p| provider_has_credentials(&settings, p))
+                .unwrap_or(false)
+    };
     let max_iterations = (settings.max_iterations as usize).min(MAX_ITERATIONS_CEILING);
     let schema = tools::tool_schema();
 
@@ -827,8 +1206,26 @@ pub(crate) async fn run_chat_turn(
 
     // ---- Phase 1: Planner ----
     let plan_text: Option<String> = if use_planner {
-        emit_step(&app, &mut steps, Role::Planner, "planning", "running");
-        match stream_openrouter(&app, &settings, None, &planner_messages(&history, &message, project_ctx_ref), None, Role::Planner, &cancel).await {
+        let (p_provider, _) = resolve_provider(&settings, Role::Planner);
+        let p_model = model_for_role(&settings, Role::Planner, p_provider);
+        emit_step(
+            &app,
+            &mut steps,
+            Role::Planner,
+            "planning",
+            "running",
+            Some((p_provider, &p_model)),
+        );
+        match call_model(
+            &app,
+            &settings,
+            Role::Planner,
+            &planner_messages(&history, &message, project_ctx_ref),
+            None,
+            &cancel,
+        )
+        .await
+        {
             Ok(msg) => {
                 let text = msg.content.clone().unwrap_or_default();
                 finish_step(&app, &mut steps, "done", Some(&first_line(&text)));
@@ -870,14 +1267,26 @@ pub(crate) async fn run_chat_turn(
             if cancel.is_cancelled() {
                 break 'outer;
             }
+            let (e_provider, _) = resolve_provider(&settings, Role::Executor);
+            let e_model = model_for_role(&settings, Role::Executor, e_provider);
             emit_step(
                 &app,
                 &mut steps,
                 Role::Executor,
                 &format!("executor step {}", iteration + 1),
                 "running",
+                Some((e_provider, &e_model)),
             );
-            let reply = match call_executor_with_fallback(&app, &settings, &messages, &schema, Role::Executor, &cancel).await {
+            let reply = match call_model(
+                &app,
+                &settings,
+                Role::Executor,
+                &messages,
+                Some(&schema),
+                &cancel,
+            )
+            .await
+            {
                 Ok(m) => m,
                 Err(e) => {
                     finish_step(&app, &mut steps, "failed", Some(&truncate(&e, 120)));
@@ -1020,14 +1429,35 @@ pub(crate) async fn run_chat_turn(
         if !settings.reviewer_enabled || final_assistant.is_empty() || reviewer_retries_left == 0 {
             break 'outer;
         }
-        emit_step(&app, &mut steps, Role::Reviewer, "reviewing", "running");
-        let review_messages = reviewer_messages(&message, &final_assistant, &all_tool_calls, &all_tool_results, project_ctx_ref);
-        // Reviewer prefers the planner (OpenRouter) if available, else executor.
-        let review_result = if use_planner {
-            stream_openrouter(&app, &settings, None, &review_messages, None, Role::Reviewer, &cancel).await
-        } else {
-            stream_ollama(&app, &settings, &review_messages, None, Role::Reviewer, &cancel).await
-        };
+        let (r_provider, _) = resolve_provider(&settings, Role::Reviewer);
+        let r_model = model_for_role(&settings, Role::Reviewer, r_provider);
+        emit_step(
+            &app,
+            &mut steps,
+            Role::Reviewer,
+            "reviewing",
+            "running",
+            Some((r_provider, &r_model)),
+        );
+        let review_messages = reviewer_messages(
+            &message,
+            &final_assistant,
+            &all_tool_calls,
+            &all_tool_results,
+            project_ctx_ref,
+        );
+        // Reviewer routing is driven by `provider_mode` + per-role
+        // resolution; the dispatcher falls back to the secondary
+        // provider on any failure.
+        let review_result = call_model(
+            &app,
+            &settings,
+            Role::Reviewer,
+            &review_messages,
+            None,
+            &cancel,
+        )
+        .await;
         let review_text = match review_result {
             Ok(m) => m.content.clone().unwrap_or_default(),
             Err(e) => {
@@ -1223,13 +1653,26 @@ fn parse_review_verdict(text: &str) -> ReviewVerdict {
     ReviewVerdict::Unknown
 }
 
-fn emit_step(app: &AppHandle, steps: &mut Vec<StepSummary>, role: Role, title: &str, status: &str) {
+fn emit_step(
+    app: &AppHandle,
+    steps: &mut Vec<StepSummary>,
+    role: Role,
+    title: &str,
+    status: &str,
+    provider_meta: Option<(Provider, &str)>,
+) {
     let index = steps.len() as u32;
+    let (provider, model) = match provider_meta {
+        Some((p, m)) => (Some(p.as_str().to_string()), Some(m.to_string())),
+        None => (None, None),
+    };
     let step = StepSummary {
         index,
         role: role.as_str().into(),
         title: title.into(),
         status: status.into(),
+        provider,
+        model,
     };
     let _ = app.emit("ai:step", json!(step));
     steps.push(step);

@@ -39,11 +39,34 @@ export type ChatMessage = {
   streaming_role?: AgentRole;
 };
 
+/**
+ * How agent roles (planner, executor, reviewer) map onto backends.
+ *
+ * - `cloud`  — every role runs on OpenRouter. No fallback.
+ * - `local`  — every role runs on Ollama. No fallback.
+ * - `hybrid` — planner + reviewer on OpenRouter, executor on Ollama;
+ *   each role falls back to the other provider when the primary fails.
+ */
+export type ProviderMode = "cloud" | "local" | "hybrid";
+
 export type Settings = {
   openrouter_api_key: string;
   openrouter_model: string;
   ollama_base_url: string;
   ollama_model: string;
+  /**
+   * Provider routing strategy. See {@link ProviderMode}. Defaults to
+   * `hybrid` when an OpenRouter key is present, otherwise `local`.
+   */
+  provider_mode: ProviderMode;
+  /**
+   * Optional per-role model override. Empty means "use the default for
+   * whichever provider routes this role" (`openrouter_model` or
+   * `ollama_model`). A non-empty string is used verbatim.
+   */
+  planner_model: string;
+  reviewer_model: string;
+  executor_model: string;
   reviewer_enabled: boolean;
   max_iterations: number;
   cmd_confirm_required: boolean;
@@ -207,6 +230,14 @@ export type StepEvent = {
   role: AgentRole;
   title: string;
   status: StepStatus;
+  /**
+   * Provider actually routed for this step. Emitted by the backend
+   * dispatcher (`resolve_provider`). Absent on non-model steps (e.g.
+   * synthesis bubbles emitted purely from local state).
+   */
+  provider?: "openrouter" | "ollama";
+  /** Concrete model identifier used on the wire (e.g. `"openrouter/auto"`). */
+  model?: string;
 };
 
 export type ConfirmRequest = {

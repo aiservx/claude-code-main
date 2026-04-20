@@ -187,14 +187,14 @@ pub(crate) async fn await_user_confirmation(
 ) -> ConfirmOutcome {
     let (tx, rx) = oneshot::channel::<bool>();
     {
-        let mut map = state.pending_confirms.lock().unwrap();
+        let mut map = state.pending_confirms.lock().await;
         map.insert(id.clone(), tx);
     }
     let _ = app.emit("ai:confirm_request", payload);
     tokio::select! {
         biased;
         _ = cancel.cancelled() => {
-            let mut map = state.pending_confirms.lock().unwrap();
+            let mut map = state.pending_confirms.lock().await;
             map.remove(&id);
             ConfirmOutcome::Cancelled
         }
@@ -203,7 +203,7 @@ pub(crate) async fn await_user_confirmation(
             Ok(Ok(false)) => ConfirmOutcome::Denied,
             Ok(Err(_)) => ConfirmOutcome::Denied, // sender dropped
             Err(_) => {
-                let mut map = state.pending_confirms.lock().unwrap();
+                let mut map = state.pending_confirms.lock().await;
                 map.remove(&id);
                 ConfirmOutcome::TimedOut
             }
@@ -511,14 +511,18 @@ pub async fn run_cmd(
 }
 
 /// Resolves a pending `ai:confirm_request`. Used by the UI's confirm modal.
+///
+/// `async` so it can `await` the tokio `pending_confirms` lock — the map
+/// is shared with the async tool-call path, so using `std::sync::Mutex`
+/// here would require holding it across an `.await` point in the caller.
 #[tauri::command]
-pub fn confirm_cmd(
+pub async fn confirm_cmd(
     state: tauri::State<'_, AppState>,
     id: String,
     approved: bool,
 ) -> Result<(), String> {
     let tx = {
-        let mut map = state.pending_confirms.lock().unwrap();
+        let mut map = state.pending_confirms.lock().await;
         map.remove(&id)
     };
     match tx {
