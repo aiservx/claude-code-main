@@ -149,6 +149,8 @@ pub fn run() {
             ai::probe_openrouter,
             settings::get_settings,
             settings::save_settings,
+            settings::set_last_project_dir,
+            settings::get_last_project_dir,
             memory::load_memory,
             memory::save_memory,
             controller::start_goal,

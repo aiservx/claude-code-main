@@ -131,6 +131,34 @@ pub fn emit_goal_started(app: &AppHandle, tree: &TaskTree) {
     );
 }
 
+/// Emit a `goal:planning` event indicating a goal run has begun and the
+/// planner phase is in progress, *before* any tasks have been parsed out
+/// of the planner stream. This is what powers the "planner is drafting
+/// the task list…" chip in the TaskPanel during the otherwise-silent
+/// planning phase (Scenario-A §9.2 F-2).
+///
+/// `phase` narrows the user-visible copy. Current phases:
+/// - `"scanning"` — the project scan is running.
+/// - `"planning"` — the planner is streaming.
+pub fn emit_goal_planning(app: &AppHandle, goal: &str, phase: &str) {
+    let _ = app.emit(
+        "goal:planning",
+        json!({
+            "goal": goal,
+            "phase": phase,
+            "at": unix_ts(),
+        }),
+    );
+}
+
+/// Emit a `goal:planning_done` event to clear the "planning" chip once
+/// the goal transitions out of the planning phase — either because the
+/// tree is populated and execution is about to start, or because the
+/// goal was cancelled before any tasks were parsed.
+pub fn emit_goal_planning_done(app: &AppHandle) {
+    let _ = app.emit("goal:planning_done", json!({"at": unix_ts()}));
+}
+
 pub fn emit_task_added(app: &AppHandle, goal_id: &str, task: &Task) {
     let _ = app.emit(
         "task:added",

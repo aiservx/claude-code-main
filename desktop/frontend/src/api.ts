@@ -62,6 +62,16 @@ export const api = {
   saveSettings: (settings: Settings) =>
     invoke<void>("save_settings", { settings }),
 
+  /** Persist `project_dir` as the user's most recently opened project.
+   *  Called from the `open_project` flow so a subsequent boot can
+   *  auto-restore it. Scenario-A §9.2 F-8. */
+  setLastProjectDir: (project_dir: string) =>
+    invoke<void>("set_last_project_dir", { projectDir: project_dir }),
+
+  /** Read the persisted last-opened project dir, if any. */
+  getLastProjectDir: () =>
+    invoke<string | null>("get_last_project_dir"),
+
   checkPlanner: () => invoke<boolean>("check_planner"),
   checkExecutor: () => invoke<boolean>("check_executor"),
 
@@ -139,7 +149,9 @@ export type BackendEvent =
   | "task:goal_done"
   | "task:failure_logged"
   | "task:circuit_tripped"
-  | "project:scan_done";
+  | "project:scan_done"
+  | "goal:planning"
+  | "goal:planning_done";
 
 /** Listen to a backend event. Returns an unlisten function. */
 export async function onEvent<T>(

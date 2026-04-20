@@ -937,7 +937,7 @@ async fn call_provider(
 ///   within 10 s.
 ///
 /// This is what powers the topbar "planner ready / off" and
-/// "ollama online / offline" badges. Before Scenario-A §9.2 F-1, the
+/// "executor ready / off" badges. Before Scenario-A §9.2 F-1, the
 /// planner probe only checked the OpenRouter key — which reported
 /// `planner off` even when Local mode was happily serving the planner
 /// via Ollama. Routing through [`resolve_provider`] keeps the badges

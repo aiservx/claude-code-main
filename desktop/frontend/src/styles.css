@@ -729,6 +729,47 @@ textarea:focus {
   font-size: 12px;
 }
 
+/* Scenario-A §9.2 F-2: pre-execution "planning…" chip. Rendered in
+ * TaskPanel whenever the store's `goalPlanning` slice is non-null, so
+ * the pane isn't silent during the 2+ minute scan + plan phase on
+ * small local models. Two phases: `scanning` (project scan) and
+ * `planning` (planner streaming). The gentle pulse mirrors the chip
+ * style of running task rows. */
+.task-planning-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0;
+  padding: 6px 10px;
+  font-size: 12px;
+  color: var(--fg-dim);
+  background: var(--bg-3);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  animation: task-planning-chip-pulse 1.4s ease-in-out infinite;
+}
+.task-planning-chip-planning {
+  /* Planner phase is the visible "work" phase — shift the tint
+   * slightly brighter so the transition from scanning → planning is
+   * noticeable without being jarring. */
+  color: var(--fg);
+  border-color: #3a5a96;
+  background: rgba(58, 90, 150, 0.18);
+}
+.task-planning-spinner {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  letter-spacing: 2px;
+  color: inherit;
+}
+@keyframes task-planning-chip-pulse {
+  0%, 100% { opacity: 0.7; }
+  50%      { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .task-planning-chip { animation: none; }
+}
+
 .task-failures {
   margin-top: 10px;
   padding: 8px;
