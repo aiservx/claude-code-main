@@ -726,8 +726,24 @@ emitter cannot grow `events` beyond 500 entries.
       from the `Open project…` flow and, on boot, reads the getter and
       auto-opens the saved directory if it still exists on disk
       (silently skipped if the dir has since been deleted or moved).
-- [ ] **Improve F-4** — surface a louder "unparsed executor output"
-      SystemAction and add a model-size warning in Settings.
+- [x] **Improve F-4** — `Settings` gained a `modelLooksSmall`
+      heuristic (case-insensitive match on `1b`/`1.5b`/`2b`/`3b`
+      tag suffixes) that renders an amber advisory under the
+      Planner / Executor model fields recommending
+      `qwen2.5-coder:7b` or `llama3.1:8b`. `ai.rs` now emits a new
+      `ai:executor_unparsed` event at the two failure paths
+      (executor iteration-0 with zero tool_calls, and reviewer
+      `ReviewVerdict::Unknown`); Chat.tsx listens and renders a
+      clickable SystemAction (`tone="warn"`, ⚠ icon) that opens
+      Settings on click. `docs/PROVIDER_ROUTING.md` §6a documents
+      the tested-minimum model sizes per role (executor ≥ 7 B;
+      planner, reviewer ≥ 3 B). Also rolled in two PR #11 Devin
+      Review fixes: `styles.css:760` `var(--font-mono)` →
+      `var(--mono)` (the correct variable), and
+      `set_last_project_dir` now clones → mutates → `save()` →
+      swaps, matching the established save-then-update pattern so
+      a failed disk write leaves in-memory and on-disk settings in
+      sync.
 - [ ] **Retry Scenario A on `qwen2.5-coder:7b` or `llama3.1:8b`**
       before moving on to Scenarios B–E.
 

@@ -141,6 +141,7 @@ export type BackendEvent =
   | "ai:done"
   | "ai:error"
   | "ai:confirm_request"
+  | "ai:executor_unparsed"
   | "fs:changed"
   | "task:goal_started"
   | "task:added"
@@ -167,3 +168,22 @@ export type TokenEvent = { text: string; role: AgentRole };
 export type DoneEvent = { assistant: string; iterations: number };
 export type ErrorEvent = { message: string; role?: AgentRole };
 export type ConfirmEvent = ConfirmRequest;
+
+/**
+ * Emitted by the backend when the executor finishes a turn without
+ * ever producing a parseable tool call — the canonical small-model
+ * failure mode surfaced by Scenario A (§9.2 F-4). The Chat tier
+ * listens to this and renders a visible SystemAction so the advice
+ * ("try a larger executor") is not buried in the Debug pane.
+ *
+ * `reason` is a machine-readable discriminator that tells us *where*
+ * we caught it (either the executor exited iteration 0 with no tool
+ * calls, or the reviewer could not verdict the executor's output).
+ * The copy rendered to the user is the same in both cases.
+ */
+export type ExecutorUnparsedEvent = {
+  role: "executor";
+  provider: string;
+  model: string;
+  reason: "no_tool_calls_first_iteration" | "reviewer_verdict_unknown";
+};

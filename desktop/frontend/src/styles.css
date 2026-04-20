@@ -486,6 +486,30 @@ textarea:focus {
   gap: 8px;
   margin-top: 12px;
 }
+/* Amber "small model" advisory under planner/executor model fields.
+   Mirrors the inline yellow "reachable but not pulled" chip tone but
+   renders as a multi-line block so longer copy fits without wrapping
+   awkwardly into the grid. Scenario-A §9.2 F-4. */
+.settings-small-model-warning {
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+  margin-top: 4px;
+  padding: 6px 8px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #f9a825;
+  background: rgba(249, 168, 37, 0.08);
+  border: 1px solid rgba(249, 168, 37, 0.35);
+  border-radius: 4px;
+}
+.settings-small-model-warning code {
+  font-family: var(--mono);
+  font-size: 11px;
+  background: rgba(249, 168, 37, 0.12);
+  padding: 0 3px;
+  border-radius: 2px;
+}
 
 .empty-state {
   padding: 20px;
@@ -757,7 +781,7 @@ textarea:focus {
   background: rgba(58, 90, 150, 0.18);
 }
 .task-planning-spinner {
-  font-family: var(--font-mono);
+  font-family: var(--mono);
   font-weight: 600;
   letter-spacing: 2px;
   color: inherit;
