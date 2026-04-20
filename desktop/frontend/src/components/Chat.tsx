@@ -1,6 +1,15 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { api, onEvent, type DoneEvent, type TokenEvent, type ErrorEvent } from "../api";
-import type { AgentRole, ChatMessage } from "../types";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  api,
+  onEvent,
+  type DoneEvent,
+  type TokenEvent,
+  type ErrorEvent,
+} from "../api";
+import type { AgentRole, ChatMessage, StepEvent } from "../types";
+import { FinalAnswerBubble } from "./FinalAnswerBubble";
+import { SystemAction } from "./SystemAction";
+import { ThinkingBlock } from "./ThinkingBlock";
 
 type Props = {
   projectDir: string | null;
@@ -13,17 +22,58 @@ function uid() {
   return Math.random().toString(36).slice(2, 10);
 }
 
-function roleColor(r?: AgentRole): string {
-  switch (r) {
-    case "planner":
-      return "role-planner";
-    case "executor":
-      return "role-executor";
-    case "reviewer":
-      return "role-reviewer";
-    default:
-      return "";
+/**
+ * Classifies each message into one of four rendering tiers.
+ *
+ * Tier definitions (from the audit):
+ *  - `user`     — the user's prompt (rendered as a user bubble).
+ *  - `system`   — a synthetic system message (renders as a
+ *                 {@link SystemAction} pill; never the final answer).
+ *  - `final`    — the last non-reviewer assistant bubble in a turn;
+ *                 the executor's actual answer. Rendered via
+ *                 {@link FinalAnswerBubble}.
+ *  - `thinking` — everything else authored by an agent (planner
+ *                 output, earlier executor iterations before a reviewer
+ *                 retry, reviewer verdicts). Rendered via
+ *                 {@link ThinkingBlock}.
+ *
+ * A "turn" starts at a user message and ends at the next one. Within a
+ * turn the final-answer bubble is the **last** assistant message whose
+ * `streaming_role` is either `executor` or missing (legacy / synthesised
+ * bubbles). Reviewer bubbles never become the final answer even when
+ * they are the last assistant in a turn.
+ */
+type Tier = "user" | "system" | "final" | "thinking";
+
+function classifyMessages(messages: ChatMessage[]): Tier[] {
+  const tiers: Tier[] = new Array(messages.length).fill("thinking");
+  // Track the last-final candidate per turn. We walk forward and reset
+  // the candidate whenever a new user message opens a turn.
+  let turnFinalIdx = -1;
+  for (let i = 0; i < messages.length; i++) {
+    const m = messages[i];
+    if (m.role === "user") {
+      if (turnFinalIdx >= 0) tiers[turnFinalIdx] = "final";
+      turnFinalIdx = -1;
+      tiers[i] = "user";
+      continue;
+    }
+    if (m.role === "system" || m.role === "tool") {
+      tiers[i] = "system";
+      continue;
+    }
+    // assistant
+    const r = m.streaming_role;
+    if (r === "reviewer") {
+      tiers[i] = "thinking";
+      continue;
+    }
+    // executor (or legacy `undefined` role) is a candidate for "final".
+    turnFinalIdx = i;
+    tiers[i] = "thinking";
   }
+  if (turnFinalIdx >= 0) tiers[turnFinalIdx] = "final";
+  return tiers;
 }
 
 export function Chat({ projectDir, messages, setMessages, disabled }: Props) {
@@ -57,15 +107,50 @@ export function Chat({ projectDir, messages, setMessages, disabled }: Props) {
               content: p.text,
               streaming: true,
               streaming_role: p.role,
+              started_at: Date.now(),
             },
           ];
         });
       }),
     );
     unlistens.push(
+      onEvent<StepEvent>("ai:step", (p) => {
+        setMessages((prev) => {
+          // Attach provider / model / duration to the most recent
+          // streaming bubble for this role. Done steps also freeze
+          // `ended_at` so the ThinkingBlock can show a duration even
+          // before the global `ai:done` arrives.
+          const now = Date.now();
+          for (let i = prev.length - 1; i >= 0; i--) {
+            const m = prev[i];
+            if (
+              m.role === "assistant" &&
+              m.streaming_role === p.role &&
+              (m.streaming || m.ended_at == null)
+            ) {
+              const next = [...prev];
+              next[i] = {
+                ...m,
+                provider: p.provider ?? m.provider,
+                model: p.model ?? m.model,
+                ended_at: p.status !== "running" ? now : m.ended_at,
+              };
+              return next;
+            }
+          }
+          return prev;
+        });
+      }),
+    );
+    unlistens.push(
       onEvent<DoneEvent>("ai:done", () => {
+        const now = Date.now();
         setMessages((prev) =>
-          prev.map((m) => (m.streaming ? { ...m, streaming: false } : m)),
+          prev.map((m) =>
+            m.streaming
+              ? { ...m, streaming: false, ended_at: m.ended_at ?? now }
+              : m,
+          ),
         );
       }),
     );
@@ -88,7 +173,11 @@ export function Chat({ projectDir, messages, setMessages, disabled }: Props) {
 
   const send = useCallback(async () => {
     if (!projectDir || sending || input.trim().length === 0) return;
-    const userMsg: ChatMessage = { id: uid(), role: "user", content: input.trim() };
+    const userMsg: ChatMessage = {
+      id: uid(),
+      role: "user",
+      content: input.trim(),
+    };
     const historyForCall = messages.filter((m) => !m.streaming);
     setMessages([...messages, userMsg]);
     setInput("");
@@ -96,12 +185,13 @@ export function Chat({ projectDir, messages, setMessages, disabled }: Props) {
     try {
       const resp = await api.sendChat(projectDir, userMsg.content, historyForCall);
       setMessages((prev) => {
+        const now = Date.now();
         // Clear any lingering streaming flags from dropped frames.
         const cleared = prev.map((m) =>
-          m.streaming ? { ...m, streaming: false } : m,
+          m.streaming
+            ? { ...m, streaming: false, ended_at: m.ended_at ?? now }
+            : m,
         );
-        // If streaming never produced an executor bubble, synthesize one from
-        // the final response so the user sees *something*.
         const hasExecutorBubble = cleared.some(
           (m) =>
             m.role === "assistant" &&
@@ -109,6 +199,9 @@ export function Chat({ projectDir, messages, setMessages, disabled }: Props) {
             m.content.length > 0,
         );
         if (!hasExecutorBubble && resp.assistant) {
+          // Synthesise a final executor bubble when streaming produced
+          // no text — otherwise the user would see thinking blocks but
+          // no actual answer.
           return [
             ...cleared,
             {
@@ -118,10 +211,12 @@ export function Chat({ projectDir, messages, setMessages, disabled }: Props) {
               streaming_role: "executor",
               tool_calls: resp.tool_calls,
               tool_results: resp.tool_results,
+              ended_at: now,
             },
           ];
         }
-        // Otherwise attach tool metadata to the last executor bubble.
+        // Otherwise attach tool metadata to the last executor bubble so
+        // the final-answer tile can show its action count.
         const lastExecutorIdx = [...cleared]
           .map((m, i) => ({ m, i }))
           .reverse()
@@ -143,7 +238,9 @@ export function Chat({ projectDir, messages, setMessages, disabled }: Props) {
       });
     } catch (e) {
       setMessages((prev) => [
-        ...prev.map((m) => (m.streaming ? { ...m, streaming: false } : m)),
+        ...prev.map((m) =>
+          m.streaming ? { ...m, streaming: false } : m,
+        ),
         {
           id: uid(),
           role: "assistant",
@@ -155,6 +252,8 @@ export function Chat({ projectDir, messages, setMessages, disabled }: Props) {
     }
   }, [input, messages, projectDir, sending, setMessages]);
 
+  const tiers = useMemo(() => classifyMessages(messages), [messages]);
+
   return (
     <div className="chat">
       <div className="chat-messages" ref={scrollRef}>
@@ -163,38 +262,14 @@ export function Chat({ projectDir, messages, setMessages, disabled }: Props) {
             Ask the AI to read, edit, or run commands in your project.
           </div>
         )}
-        {messages.map((m) => (
-          <div
-            key={m.id}
-            className={
-              "msg role-" + m.role + " " + roleColor(m.streaming_role)
-            }
-          >
-            <div className="msg-role">
-              {m.role}
-              {m.streaming_role ? (
-                <span className={"role-chip chip-" + m.streaming_role}>
-                  {m.streaming_role}
-                </span>
-              ) : null}
-              {m.streaming ? (
-                <span className="streaming-dot" aria-label="streaming" />
-              ) : null}
-            </div>
-            <div>{m.content || (m.streaming ? "…" : "")}</div>
-            {m.tool_calls && m.tool_calls.length > 0 && (
-              <div className="tool-summary">
-                {m.tool_calls.length} tool call
-                {m.tool_calls.length > 1 ? "s" : ""}:&nbsp;
-                {m.tool_calls.map((t) => t.name).join(", ")}
-              </div>
-            )}
-          </div>
-        ))}
+        {messages.map((m, i) => renderMessage(m, tiers[i]))}
         {sending && !messages.some((m) => m.streaming) && (
-          <div className="msg role-assistant">
-            <div className="msg-role">assistant</div>
-            <div style={{ color: "var(--fg-dim)" }}>thinking…</div>
+          <div className="thinking-block is-streaming role-executor">
+            <div className="tb-header">
+              <span className="tb-caret" aria-hidden>▾</span>
+              <span className="role-chip chip-executor">Thinking</span>
+              <span className="streaming-dot" aria-label="thinking" />
+            </div>
           </div>
         )}
       </div>
@@ -230,5 +305,57 @@ export function Chat({ projectDir, messages, setMessages, disabled }: Props) {
         )}
       </div>
     </div>
+  );
+}
+
+function renderMessage(m: ChatMessage, tier: Tier) {
+  if (tier === "user") {
+    return (
+      <div key={m.id} className="msg role-user">
+        <div className="msg-role">you</div>
+        <div className="msg-body">{m.content}</div>
+      </div>
+    );
+  }
+  if (tier === "system") {
+    return (
+      <SystemAction
+        key={m.id}
+        icon="•"
+        tone={/error/i.test(m.content) ? "error" : "info"}
+        text={m.content}
+      />
+    );
+  }
+  const duration =
+    m.ended_at != null && m.started_at != null
+      ? m.ended_at - m.started_at
+      : undefined;
+  if (tier === "final") {
+    return (
+      <FinalAnswerBubble
+        key={m.id}
+        content={m.content}
+        streaming={m.streaming}
+        provider={m.provider}
+        model={m.model}
+        toolCalls={m.tool_calls}
+        toolResults={m.tool_results}
+      />
+    );
+  }
+  const role: AgentRole = (m.streaming_role ?? "executor") as AgentRole;
+  return (
+    <ThinkingBlock
+      key={m.id}
+      role={role}
+      content={m.content}
+      streaming={m.streaming ?? false}
+      provider={m.provider}
+      model={m.model}
+      durationMs={duration}
+      toolCalls={m.tool_calls}
+      toolResults={m.tool_results}
+    />
   );
 }

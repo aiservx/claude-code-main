@@ -37,6 +37,18 @@ export type ChatMessage = {
   streaming?: boolean;
   /** Which agent authored the streaming partial, if any. */
   streaming_role?: AgentRole;
+  /**
+   * Provider actually routed for the agent that authored this message,
+   * populated from the Phase 2 `ai:step` event. Present only on
+   * assistant messages that came from a real model call.
+   */
+  provider?: "openrouter" | "ollama";
+  /** Concrete model id used on the wire (e.g. `"openrouter/auto"`). */
+  model?: string;
+  /** Epoch ms when the first token streamed in. */
+  started_at?: number;
+  /** Epoch ms when streaming ended (or the bubble was synthesised). */
+  ended_at?: number;
 };
 
 /**
