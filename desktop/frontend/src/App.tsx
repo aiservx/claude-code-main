@@ -132,9 +132,14 @@ export default function App() {
     return plannerOk ? "planner ready" : "planner off";
   }, [plannerOk]);
 
+  // Label is provider-neutral ("executor ready / off") rather than the
+  // old "ollama online / offline", because the executor role can resolve
+  // to either OpenRouter (Cloud) or Ollama (Local/Hybrid) depending on
+  // the configured ProviderMode. The resolved provider is visible in
+  // Settings; the badge just reports reachability. Scenario-A §9.2 F-1.
   const statusExecutor = useMemo(() => {
     if (executorOk === null) return "checking…";
-    return executorOk ? "ollama online" : "ollama offline";
+    return executorOk ? "executor ready" : "executor off";
   }, [executorOk]);
 
   const chatDisabled = !projectDir || executorOk === false;

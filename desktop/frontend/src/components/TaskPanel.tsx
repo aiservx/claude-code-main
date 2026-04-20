@@ -344,7 +344,7 @@ export function TaskPanel({ projectDir, disabled }: Props) {
               </span>
             )}
             <div
-              className="task-progress-bar"
+              className={`task-progress-bar task-progress-bar-${runState}`}
               role="progressbar"
               aria-valuenow={progress.pct}
               aria-valuemin={0}

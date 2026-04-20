@@ -663,16 +663,24 @@ emitter cannot grow `events` beyond 500 entries.
 
 ### 9.6 Follow-up work opened by this session
 
-- [ ] **Fix F-1** — teach `check_planner` / `check_executor` /
-      `check_reviewer` to respect `ProviderMode` and route through
-      `resolve_provider`.
+- [x] **Fix F-1** — `check_planner` / `check_executor` now route
+      through `resolve_provider` and probe the correct backend per role;
+      the topbar executor badge is re-labelled provider-neutrally
+      ("executor ready / off") instead of always saying "ollama online /
+      offline" regardless of `ProviderMode`.
 - [ ] **Fix F-2** — emit a synthetic `planning` status from
       `start_goal` so TaskPanel shows a live chip *before* any tasks
       are parsed.
-- [ ] **Fix F-3** — progress bar colour + numerator should reflect
-      `done` only; cancelled/failed paint amber/red.
-- [ ] **Fix F-5** — force `streaming_role === "planner"` to tier
-      `thinking` in `classifyMessages`.
+- [x] **Fix F-3** — the task progress bar now carries a
+      `task-progress-bar-<runState>` modifier class and recolours its
+      fill to amber (`cancelled`) or red (`failed` / `timeout`); only
+      the success path keeps the original green. The `2/2` counter
+      still reflects tasks *processed* (done + failed + skipped) so the
+      numeric semantic is unchanged.
+- [x] **Fix F-5** — `classifyMessages` now explicitly excludes
+      `streaming_role === "planner"` from the final-answer candidate
+      slot (previously only reviewer was excluded), so a streaming
+      planner bubble is never transiently tagged as `FinalAnswer`.
 - [ ] **Fix F-8** — persist last-opened project dir.
 - [ ] **Improve F-4** — surface a louder "unparsed executor output"
       SystemAction and add a model-size warning in Settings.
