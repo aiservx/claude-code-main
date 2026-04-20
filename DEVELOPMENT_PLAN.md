@@ -85,24 +85,24 @@
 
 ---
 
-## ⏳ المرحلة 3 — نظام Thinking UI (1-2 أسبوع)
+## ✅ المرحلة 3 — نظام Thinking UI (مُكتملة)
 
 **الهدف**: تحويل الـ chat من "حائط نصوص" إلى واجهة ذكية بثلاث طبقات بصرية.
 
 **المرجع**: `FULL_SYSTEM_AUDIT.md` Section 7.2-7.3
 
-| # | المهمة | الملف | الأولوية |
+| # | المهمة | الملف | الحالة |
 |---|--------|-------|----------|
-| 1 | `ThinkingBlock` component (streaming → collapsed → expanded) | `ThinkingBlock.tsx` جديد | 🔴 عالية |
-| 2 | `FinalAnswerBubble` — tier 1، بارز، دائماً مرئي | `FinalAnswerBubble.tsx` جديد | 🔴 عالية |
-| 3 | `SystemAction` — tier 3، مصغّر، inline | `SystemAction.tsx` جديد | 🟡 متوسطة |
-| 4 | `generateSummary` — استخراج ملخص client-side | ضمن `ThinkingBlock.tsx` | 🔴 عالية |
-| 5 | استبدال rendering في `Chat.tsx` بالنظام الثلاثي | `Chat.tsx` | 🔴 عالية |
-| 6 | Collapse/expand animations (200ms ease-out) | CSS | 🟡 متوسطة |
-| 7 | Debounced streaming (50ms batching لـ `ai:token`) | `Chat.tsx` | 🟡 متوسطة |
-| 8 | إصلاح double-emit bubble على الأجهزة البطيئة (Addendum 2.7) | `Chat.tsx` | 🟢 منخفضة |
+| 1 | `ThinkingBlock` component (streaming → collapsed → expanded) | `ThinkingBlock.tsx` جديد | ✅ |
+| 2 | `FinalAnswerBubble` — tier 1، بارز، دائماً مرئي | `FinalAnswerBubble.tsx` جديد | ✅ |
+| 3 | `SystemAction` — tier 3، مصغّر، inline | `SystemAction.tsx` جديد | ✅ |
+| 4 | `classifyMessages` — تصنيف الرسائل على ثلاث طبقات | ضمن `Chat.tsx` | ✅ |
+| 5 | استبدال rendering في `Chat.tsx` بالنظام الثلاثي | `Chat.tsx` | ✅ |
+| 6 | Provider/model badges على كل thinking + final bubble | `Chat.tsx` + CSS | ✅ |
+| 7 | `prefers-reduced-motion` يوقف streaming-dot animation | CSS | ✅ |
+| 8 | Debounced streaming (50ms batching لـ `ai:token`) | `Chat.tsx` | ⏳ (مؤجَّل لـ Phase 5 Polish) |
 
-**معيار الاكتمال**: رسائل planner/executor تظهر كـ thinking blocks قابلة للطي. الإجابة النهائية بارزة.
+**معيار الاكتمال**: رسائل planner/executor/reviewer تظهر كـ thinking blocks قابلة للطي. الإجابة النهائية (آخر executor) بارزة كـ tier-1 bubble. كل bubble يحمل badge للـ provider/model الفعلي القادم من `ai:step`.
 
 ---
 

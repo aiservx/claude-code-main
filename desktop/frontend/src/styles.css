@@ -839,3 +839,254 @@ textarea:focus {
   font-style: italic;
   font-size: 10px;
 }
+
+/* ---------- Phase 3 Thinking UI ---------- */
+
+/* Tier 1 — FinalAnswerBubble */
+.final-answer {
+  margin: 14px 0;
+  padding: 14px 16px;
+  background: linear-gradient(180deg, #131a2b 0%, #111522 100%);
+  border: 1px solid #2b3553;
+  border-left: 3px solid var(--accent);
+  border-radius: 8px;
+  box-shadow: 0 1px 0 rgba(91, 140, 255, 0.08) inset;
+}
+.final-answer.is-streaming {
+  border-left-color: var(--accent-2);
+}
+.final-answer .fa-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 11px;
+  color: var(--fg-dim);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.final-answer .fa-label {
+  color: var(--accent-2);
+  font-weight: 600;
+}
+.final-answer .fa-provider {
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 600;
+  border: 1px solid var(--border);
+  letter-spacing: 0.04em;
+}
+.final-answer .fa-provider.provider-openrouter {
+  background: #22274a;
+  color: #9ecbff;
+  border-color: #364279;
+}
+.final-answer .fa-provider.provider-ollama {
+  background: #1d2e23;
+  color: #9fe8c8;
+  border-color: #2e4c38;
+}
+.final-answer .fa-model {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--fg-dim);
+  text-transform: none;
+  letter-spacing: 0;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.final-answer .fa-content {
+  color: var(--fg);
+  font-size: 14px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.final-answer .fa-tools {
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--fg-dim);
+  font-family: var(--mono);
+}
+
+/* Tier 2 — ThinkingBlock (collapsible reasoning) */
+.thinking-block {
+  margin: 8px 0;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-2);
+  overflow: hidden;
+}
+.thinking-block.is-streaming {
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+}
+.thinking-block .tb-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: transparent;
+  border: 0;
+  color: var(--fg-dim);
+  font-size: 11px;
+  text-align: left;
+  cursor: pointer;
+}
+.thinking-block .tb-header:hover {
+  background: var(--bg-3);
+}
+.thinking-block .tb-header:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+.thinking-block .tb-caret {
+  display: inline-block;
+  width: 10px;
+  color: var(--fg-dim);
+  font-size: 10px;
+}
+.thinking-block .tb-tool-count {
+  font-size: 10px;
+  color: var(--fg-dim);
+  font-family: var(--mono);
+  margin-left: 4px;
+}
+.thinking-block .tb-spacer {
+  flex: 1;
+}
+.thinking-block .tb-provider {
+  padding: 1px 6px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 600;
+  border: 1px solid var(--border);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.thinking-block .tb-provider.provider-openrouter {
+  background: #22274a;
+  color: #9ecbff;
+  border-color: #364279;
+}
+.thinking-block .tb-provider.provider-ollama {
+  background: #1d2e23;
+  color: #9fe8c8;
+  border-color: #2e4c38;
+}
+.thinking-block .tb-model {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--fg-dim);
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.thinking-block .tb-duration {
+  font-size: 10px;
+  color: var(--fg-dim);
+  font-variant-numeric: tabular-nums;
+}
+.thinking-block .tb-body {
+  padding: 8px 12px 10px 28px;
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+}
+.thinking-block .tb-content {
+  color: var(--fg);
+  font-size: 12.5px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.thinking-block .tb-placeholder {
+  color: var(--fg-dim);
+  font-family: var(--mono);
+  font-size: 11px;
+}
+.thinking-block .tb-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+  margin-top: 8px;
+}
+
+/* Tier 3 — SystemAction pill */
+.system-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: var(--bg-3);
+  border: 1px solid var(--border);
+  font-size: 11px;
+  font-family: var(--mono);
+  color: var(--fg-dim);
+  line-height: 1.4;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+button.system-action {
+  cursor: pointer;
+}
+button.system-action:hover {
+  border-color: var(--accent);
+  color: var(--fg);
+}
+.system-action .sa-icon {
+  font-family: var(--mono);
+  font-size: 11px;
+  opacity: 0.9;
+}
+.system-action .sa-text {
+  color: inherit;
+}
+.system-action .sa-text strong {
+  color: var(--fg);
+  font-weight: 600;
+}
+.system-action .sa-args {
+  color: var(--fg-dim);
+}
+.system-action.tone-success {
+  border-color: #2f6b5b;
+}
+.system-action.tone-success .sa-icon {
+  color: #9fe8c8;
+}
+.system-action.tone-warn {
+  border-color: #7a5a28;
+}
+.system-action.tone-warn .sa-icon {
+  color: #ffd49b;
+}
+.system-action.tone-error {
+  border-color: #7a2f2f;
+}
+.system-action.tone-error .sa-icon {
+  color: #ff9b9b;
+}
+.system-action.tone-info .sa-icon {
+  color: var(--accent-2);
+}
+
+/* User message bubble — kept simple so the FinalAnswer retains the
+   most visual weight in the chat. */
+.msg.role-user .msg-body {
+  color: var(--fg);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .streaming-dot {
+    animation: none;
+  }
+}
