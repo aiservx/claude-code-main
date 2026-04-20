@@ -5,6 +5,43 @@ use serde::{Deserialize, Serialize};
 
 use crate::AppState;
 
+/// Which mix of providers should run the three agent roles (planner,
+/// executor, reviewer).
+///
+/// - `Cloud`  — every role runs on OpenRouter. Requires an API key.
+/// - `Local`  — every role runs on Ollama. No network required.
+/// - `Hybrid` — planner + reviewer on OpenRouter (reasoning-heavy),
+///   executor on Ollama (tool-heavy). Each role falls back to the
+///   other provider if its primary is unreachable.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum ProviderMode {
+    Cloud,
+    Local,
+    Hybrid,
+}
+
+impl Default for ProviderMode {
+    fn default() -> Self {
+        Self::Hybrid
+    }
+}
+
+fn default_provider_mode() -> ProviderMode {
+    // On first run we pick `Hybrid` if an OpenRouter key is available in
+    // the environment (matches the legacy "planner on when key set"
+    // behaviour), otherwise `Local`. Users can always change the mode
+    // from the Settings dialog.
+    if std::env::var("OPENROUTER_API_KEY")
+        .map(|v| !v.is_empty())
+        .unwrap_or(false)
+    {
+        ProviderMode::Hybrid
+    } else {
+        ProviderMode::Local
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Settings {
     #[serde(default)]
@@ -15,6 +52,20 @@ pub struct Settings {
     pub ollama_base_url: String,
     #[serde(default = "default_ollama_model")]
     pub ollama_model: String,
+    /// How to split the three agent roles between OpenRouter and Ollama.
+    /// See [`ProviderMode`] for the matrix.
+    #[serde(default = "default_provider_mode")]
+    pub provider_mode: ProviderMode,
+    /// Optional per-role model override. When empty, the dispatcher
+    /// uses `openrouter_model` / `ollama_model` depending on which
+    /// provider the mode routes the role to. A non-empty value is
+    /// applied verbatim as the model identifier for that role.
+    #[serde(default)]
+    pub planner_model: String,
+    #[serde(default)]
+    pub reviewer_model: String,
+    #[serde(default)]
+    pub executor_model: String,
     /// If true, run a Reviewer pass after the executor tool loop and allow one
     /// corrective retry when the reviewer asks for a fix.
     #[serde(default = "default_true")]
@@ -140,6 +191,10 @@ impl Default for Settings {
             openrouter_model: default_openrouter_model(),
             ollama_base_url: default_ollama_url(),
             ollama_model: default_ollama_model(),
+            provider_mode: default_provider_mode(),
+            planner_model: String::new(),
+            reviewer_model: String::new(),
+            executor_model: String::new(),
             reviewer_enabled: true,
             max_iterations: default_max_iterations(),
             cmd_confirm_required: true,

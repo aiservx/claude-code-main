@@ -15,7 +15,7 @@ use std::collections::HashMap;
 use std::sync::{Mutex, RwLock};
 
 use tauri::Manager;
-use tokio::sync::oneshot;
+use tokio::sync::{oneshot, Mutex as AsyncMutex};
 use tracing::info;
 use tracing_subscriber::{fmt, EnvFilter};
 
@@ -59,7 +59,13 @@ pub struct AppState {
     /// In-flight `run_cmd` confirmation requests: request_id -> oneshot sender.
     /// The AI tool loop awaits the receiver; the UI resolves it via
     /// `confirm_cmd`.
-    pub pending_confirms: Mutex<HashMap<String, oneshot::Sender<bool>>>,
+    ///
+    /// `tokio::sync::Mutex` (not `std::sync::Mutex`) because the map is
+    /// touched from `async` tool-call paths — a std Mutex held across
+    /// `.await` is a deadlock hazard and triggers a `clippy::await_holding_lock`
+    /// warning. The lock is only held for the microsecond-scale
+    /// `insert`/`remove` so the async lock's cost is negligible.
+    pub pending_confirms: AsyncMutex<HashMap<String, oneshot::Sender<bool>>>,
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -84,7 +90,7 @@ pub fn run() {
             cancelled: cancel::CancelToken::new(),
             goal_cancelled: cancel::CancelToken::new(),
             goal_running: Mutex::new(false),
-            pending_confirms: Mutex::new(HashMap::new()),
+            pending_confirms: AsyncMutex::new(HashMap::new()),
         })
         .invoke_handler(tauri::generate_handler![
             fs_ops::list_dir,
@@ -99,6 +105,7 @@ pub fn run() {
             ai::check_planner,
             ai::check_executor,
             ai::probe_ollama,
+            ai::probe_openrouter,
             settings::get_settings,
             settings::save_settings,
             memory::load_memory,

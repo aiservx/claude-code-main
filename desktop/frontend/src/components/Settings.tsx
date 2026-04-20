@@ -7,6 +7,13 @@ const DEFAULTS: Settings = {
   openrouter_model: "openrouter/auto",
   ollama_base_url: "http://localhost:11434",
   ollama_model: "deepseek-coder:6.7b",
+  // Default to `hybrid` — most users have both an OpenRouter key and a
+  // local Ollama; the backend downgrades this to `local` on first boot
+  // when no key is present, so this default is safe either way.
+  provider_mode: "hybrid",
+  planner_model: "",
+  reviewer_model: "",
+  executor_model: "",
   reviewer_enabled: true,
   max_iterations: 8,
   cmd_confirm_required: true,
@@ -32,12 +39,58 @@ type ProbeState =
     }
   | { kind: "err"; message: string };
 
+/**
+ * Probe state for OpenRouter. Separate from `ProbeState` because the
+ * OpenRouter probe also reports `key_valid` and optional
+ * `credits_remaining` that Ollama does not expose.
+ */
+type OpenRouterProbeState =
+  | { kind: "idle" }
+  | { kind: "testing" }
+  | {
+      kind: "ok";
+      key_valid: boolean;
+      model_available: boolean;
+      available_models: string[];
+      credits_remaining: number | null;
+    }
+  | { kind: "err"; message: string };
+
 export function SettingsModal({ onClose }: { onClose: () => void }) {
   const [s, setS] = useState<Settings>(DEFAULTS);
   const [loaded, setLoaded] = useState(false);
   const [saving, setSaving] = useState(false);
   const [allowListText, setAllowListText] = useState("");
   const [probe, setProbe] = useState<ProbeState>({ kind: "idle" });
+  const [orProbe, setOrProbe] = useState<OpenRouterProbeState>({
+    kind: "idle",
+  });
+
+  const testOpenRouter = async () => {
+    setOrProbe({ kind: "testing" });
+    try {
+      const r = await api.probeOpenrouter(
+        s.openrouter_api_key,
+        s.openrouter_model,
+      );
+      if (!r.reachable) {
+        setOrProbe({
+          kind: "err",
+          message: r.error ?? "OpenRouter is not reachable.",
+        });
+        return;
+      }
+      setOrProbe({
+        kind: "ok",
+        key_valid: r.key_valid,
+        model_available: r.model_available,
+        available_models: r.available_models,
+        credits_remaining: r.credits_remaining,
+      });
+    } catch (e) {
+      setOrProbe({ kind: "err", message: String(e) });
+    }
+  };
 
   const testOllama = async () => {
     setProbe({ kind: "testing" });
@@ -144,7 +197,38 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
         <h2>Settings</h2>
 
         <div className="row">
-          <label>OpenRouter API key (optional — enables the planner)</label>
+          <label>
+            Provider mode
+            <span
+              style={{ color: "#8a8a8a", fontSize: 11, marginLeft: 6 }}
+            >
+              — how planner, executor, reviewer map onto backends
+            </span>
+          </label>
+          <select
+            value={s.provider_mode}
+            onChange={(e) =>
+              setS({
+                ...s,
+                provider_mode: e.target.value as Settings["provider_mode"],
+              })
+            }
+          >
+            <option value="cloud">
+              Cloud (everything on OpenRouter, no fallback)
+            </option>
+            <option value="local">
+              Local (everything on Ollama, no fallback)
+            </option>
+            <option value="hybrid">
+              Hybrid (planner/reviewer on OpenRouter, executor on Ollama,
+              cross-fallback)
+            </option>
+          </select>
+        </div>
+
+        <div className="row">
+          <label>OpenRouter API key (required for cloud / hybrid modes)</label>
           <input
             type="password"
             placeholder="sk-or-…"
@@ -153,11 +237,85 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
           />
         </div>
         <div className="row">
-          <label>OpenRouter model</label>
+          <label>OpenRouter default model</label>
           <input
             value={s.openrouter_model}
             onChange={(e) => setS({ ...s, openrouter_model: e.target.value })}
           />
+        </div>
+
+        <div className="row">
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <button
+              type="button"
+              onClick={testOpenRouter}
+              disabled={orProbe.kind === "testing"}
+            >
+              {orProbe.kind === "testing"
+                ? "Testing…"
+                : "Test OpenRouter connection"}
+            </button>
+            {orProbe.kind === "ok" && orProbe.key_valid && (
+              <span style={{ color: "#4caf50", fontSize: 12 }}>
+                ✓ key valid ·{" "}
+                {orProbe.model_available ? (
+                  <>
+                    model <code>{s.openrouter_model}</code> available
+                  </>
+                ) : (
+                  <span style={{ color: "#f9a825" }}>
+                    ⚠ model <code>{s.openrouter_model}</code> not in catalog
+                  </span>
+                )}
+                {orProbe.credits_remaining !== null && (
+                  <> · ${orProbe.credits_remaining.toFixed(2)} left</>
+                )}
+              </span>
+            )}
+            {orProbe.kind === "ok" && !orProbe.key_valid && (
+              <span style={{ color: "#ef5350", fontSize: 12 }}>
+                ✗ reachable, but API key was rejected
+              </span>
+            )}
+            {orProbe.kind === "err" && (
+              <span style={{ color: "#ef5350", fontSize: 12 }}>
+                ✗ {orProbe.message}
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div className="row">
+          <label>
+            Per-role model overrides (optional — blank = use provider default)
+          </label>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "80px 1fr",
+              gap: 6,
+              alignItems: "center",
+            }}
+          >
+            <span style={{ fontSize: 12, color: "#bbb" }}>Planner</span>
+            <input
+              placeholder="e.g. anthropic/claude-3.5-sonnet"
+              value={s.planner_model}
+              onChange={(e) => setS({ ...s, planner_model: e.target.value })}
+            />
+            <span style={{ fontSize: 12, color: "#bbb" }}>Executor</span>
+            <input
+              placeholder="e.g. deepseek-coder:6.7b"
+              value={s.executor_model}
+              onChange={(e) => setS({ ...s, executor_model: e.target.value })}
+            />
+            <span style={{ fontSize: 12, color: "#bbb" }}>Reviewer</span>
+            <input
+              placeholder="e.g. anthropic/claude-3.5-sonnet"
+              value={s.reviewer_model}
+              onChange={(e) => setS({ ...s, reviewer_model: e.target.value })}
+            />
+          </div>
         </div>
 
         <div className="row">

@@ -1,9 +1,9 @@
 # خطة التطوير — Development Plan
 
 **تاريخ الإنشاء**: بعد تنفيذ المرحلة 1 (commit `7ca666e`)
-**آخر تحديث**: commit `b522507`
-**المرجع**: `FULL_SYSTEM_AUDIT.md` + `FULL_SYSTEM_AUDIT_ADDENDUM.md`
-**التقييم الحالي**: 6.4 / 10 (كان 5.6 قبل المرحلة 1)
+**آخر تحديث**: بعد تنفيذ المرحلة 2 (Phase 2 — Provider Routing)
+**المرجع**: `FULL_SYSTEM_AUDIT.md` + `FULL_SYSTEM_AUDIT_ADDENDUM.md` + `docs/PROVIDER_ROUTING.md`
+**التقييم الحالي**: 7.0 / 10 (كان 6.4 قبل المرحلة 2)
 
 ---
 
@@ -20,11 +20,21 @@
 - ملخص المهام السابقة بين المهام → يحل فقدان السياق
 - `Mutex` → `RwLock` → قراءات متزامنة بدون تنافس
 
+**ما تم إنجازه (المرحلة 2)**:
+- `ProviderMode` صريح (`Cloud` / `Local` / `Hybrid`) + حقول per-role (`planner_model`, `executor_model`, `reviewer_model`)
+- `call_model` dispatcher موحَّد: resolve → primary → fallback-on-error → `ai:error` metadata
+- استبدال كل `stream_*` المباشرة (planner / executor / reviewer) بـ `call_model`
+- `probe_openrouter` (reachable + key valid + model available + credits) — مرآة لـ `probe_ollama`
+- Health probe timeouts 3s → 10s (cold-start + remote LAN)
+- `provider` + `model` metadata على كل حدث `ai:step`
+- `pending_confirms` من `std::sync::Mutex` إلى `tokio::sync::Mutex` (Addendum 2.4)
+- `Settings` UI: Provider Mode selector + per-role model fields + زر Test OpenRouter
+- توثيق `docs/PROVIDER_ROUTING.md` (وضعي الفشل، cost/perf، extensions)
+
 **العوائق المتبقية** (مرتبة بالأولوية):
-1. **لا يوجد `ProviderMode` قابل للإعداد** — التوجيه لا يزال ضمني
-2. **واجهة المستخدم مستوى developer** — لا thinking blocks، لا تفرقة بصرية
-3. **لا يوجد `search_file`/`grep` tool** — التنقل في المشاريع الكبيرة بطيء
-4. **لا يوجد `response_format: json_object`** — الموديلات الصغيرة تلف JSON بـ prose
+1. **واجهة المستخدم مستوى developer** — لا thinking blocks، لا تفرقة بصرية (Phase 3)
+2. **لا يوجد `search_file`/`grep` tool** — التنقل في المشاريع الكبيرة بطيء
+3. **لا يوجد `response_format: json_object`** — الموديلات الصغيرة تلف JSON بـ prose
 
 **الحكم**: ليس جاهزاً للإطلاق العام. صالح للاستخدام المحلي المراقب.
 الوصول لـ v1.0 يتطلب 5-6 أسابيع عمل مركّز.
@@ -52,26 +62,26 @@
 
 ---
 
-## ⏳ المرحلة 2 — نظام توجيه المزودين (1-2 أسبوع)
+## ✅ المرحلة 2 — نظام توجيه المزودين (مُكتملة)
 
 **الهدف**: تحويل التوجيه الضمني (key present → cloud, else local) إلى نظام صريح قابل للإعداد مع fallback.
 
-**المرجع**: `FULL_SYSTEM_AUDIT.md` Section 6 + Addendum 2.2
+**المرجع**: `FULL_SYSTEM_AUDIT.md` Section 6 + Addendum 2.2 + `docs/PROVIDER_ROUTING.md`
 
-| # | المهمة | الملف | الأولوية |
-|---|--------|-------|----------|
-| 1 | إضافة `ProviderMode` enum (`Cloud` / `Local` / `Hybrid`) | `settings.rs` | 🔴 عالية |
-| 2 | إضافة حقول `planner_model`, `reviewer_model`, `executor_model` | `settings.rs` | 🔴 عالية |
-| 3 | بناء `call_model` dispatch + `resolve_provider` routing | `ai.rs` | 🔴 عالية |
-| 4 | استبدال كل استدعاءات `stream_ollama`/`stream_openrouter` المباشرة بـ `call_model` | `ai.rs` | 🔴 عالية |
-| 5 | إضافة `probe_openrouter` (فحص وصول + صلاحية المفتاح) | `ai.rs` جديد | 🟡 متوسطة |
-| 6 | رفع timeout الـ health probe من 3s إلى 10s (Addendum 2.3) | `ai.rs:641,672` | 🟢 منخفضة |
-| 7 | إضافة provider metadata لأحداث `ai:step` | `ai.rs` | 🟡 متوسطة |
-| 8 | تحديث Settings UI بـ Provider Mode selector + per-role model fields | `Settings.tsx` | 🔴 عالية |
-| 9 | تحويل `pending_confirms` من `std::sync::Mutex` إلى `tokio::sync::Mutex` (Addendum 2.4) | `lib.rs` + `tools.rs` | 🟡 متوسطة |
-| 10 | كتابة `docs/PROVIDER_ROUTING.md` | جديد | 🟡 متوسطة |
+| # | المهمة | الملف | الحالة |
+|---|--------|-------|--------|
+| 1 | إضافة `ProviderMode` enum (`Cloud` / `Local` / `Hybrid`) | `settings.rs` | ✅ |
+| 2 | إضافة حقول `planner_model`, `reviewer_model`, `executor_model` | `settings.rs` | ✅ |
+| 3 | بناء `call_model` dispatch + `resolve_provider` routing | `ai.rs` | ✅ |
+| 4 | استبدال كل استدعاءات `stream_ollama`/`stream_openrouter` المباشرة بـ `call_model` | `ai.rs` | ✅ |
+| 5 | إضافة `probe_openrouter` (فحص وصول + صلاحية المفتاح + credits) | `ai.rs` + `lib.rs` | ✅ |
+| 6 | رفع timeout الـ health probe من 3s إلى 10s (Addendum 2.3) | `ai.rs` | ✅ |
+| 7 | إضافة provider metadata (`provider` + `model`) لأحداث `ai:step` | `ai.rs` + `types.ts` | ✅ |
+| 8 | تحديث Settings UI بـ Provider Mode selector + per-role model fields + زر Test OpenRouter | `Settings.tsx` + `api.ts` | ✅ |
+| 9 | تحويل `pending_confirms` من `std::sync::Mutex` إلى `tokio::sync::Mutex` (Addendum 2.4) | `lib.rs` + `tools.rs` | ✅ |
+| 10 | كتابة `docs/PROVIDER_ROUTING.md` | جديد | ✅ |
 
-**معيار الاكتمال**: المستخدم يختار Cloud/Local/Hybrid من الإعدادات. كل role يوجَّه حسب الوضع مع fallback تلقائي.
+**معيار الاكتمال (تحقق)**: المستخدم يختار Cloud/Local/Hybrid من الإعدادات، وكل role يوجَّه حسب الوضع مع fallback تلقائي. كل حدث `ai:step` يحمل `provider` و `model` الفعليَّين. Fallback يُصدِر `ai:error` بـ metadata قبل التحويل. `probe_openrouter` يعيد `reachable/key_valid/model_available/credits_remaining`.
 
 ---
 
