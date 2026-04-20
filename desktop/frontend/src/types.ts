@@ -49,6 +49,13 @@ export type ChatMessage = {
   started_at?: number;
   /** Epoch ms when streaming ended (or the bubble was synthesised). */
   ended_at?: number;
+  /**
+   * Optional discriminator for `role === "system"` bubbles. Lets the
+   * renderer pick a tone and (for `"warn_action"`) wire up a click
+   * handler to open Settings. Default (`undefined`) stays backwards
+   * compatible with the pre-F-4 behaviour.
+   */
+  kind?: "info" | "warn_action";
 };
 
 /**

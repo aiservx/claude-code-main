@@ -2,6 +2,33 @@ import { useEffect, useState } from "react";
 import { api } from "../api";
 import type { Settings } from "../types";
 
+/**
+ * Heuristic: does the model name look like a ≤3B parameter model?
+ *
+ * We match `1b`, `1.5b`, `2b`, `3b` (and the common hyphen/colon tag
+ * separators Ollama and OpenRouter use — `llama3.2:1b`, `phi3-mini-3b`,
+ * `gemma-2b-it`, etc.). This is deliberately permissive on the low end
+ * and restrictive on the high end: a false negative (miss a 4B as
+ * small) is fine, a false positive (warn on a 7B) would train users to
+ * ignore the warning.
+ *
+ * Why only ≤3B: Scenario A (§9.2 of `PROJECT_MEMORY.md`) reproduced
+ * `review skipped (unparsed)` on `llama3.2:1b`. Models in the 1-3B
+ * range consistently fail to emit tool_calls for the executor. 7B+
+ * models (qwen2.5-coder:7b, llama3.1:8b) pass the same goal reliably.
+ *
+ * Only applied to executor and planner slots — reviewer tolerates
+ * small models because its output is a short verdict, not structured
+ * tool calls.
+ */
+export function modelLooksSmall(name: string | null | undefined): boolean {
+  if (!name) return false;
+  // Match one of: "1b", "1.5b", "2b", "3b" preceded by a non-alnum
+  // boundary (`:`, `-`, `_`, `.`, space) and followed by a word
+  // boundary or end-of-string. Case-insensitive.
+  return /(?:^|[^a-z0-9])(?:1(?:\.[05])?|2|3)\s*b(?:$|[^a-z0-9])/i.test(name);
+}
+
 const DEFAULTS: Settings = {
   openrouter_api_key: "",
   openrouter_model: "openrouter/auto",
@@ -305,12 +332,24 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
               value={s.planner_model}
               onChange={(e) => setS({ ...s, planner_model: e.target.value })}
             />
+            {modelLooksSmall(s.planner_model) && (
+              <>
+                <span />
+                <SmallModelWarning role="planner" />
+              </>
+            )}
             <span style={{ fontSize: 12, color: "#bbb" }}>Executor</span>
             <input
               placeholder="e.g. deepseek-coder:6.7b"
               value={s.executor_model}
               onChange={(e) => setS({ ...s, executor_model: e.target.value })}
             />
+            {modelLooksSmall(s.executor_model) && (
+              <>
+                <span />
+                <SmallModelWarning role="executor" />
+              </>
+            )}
             <span style={{ fontSize: 12, color: "#bbb" }}>Reviewer</span>
             <input
               placeholder="e.g. anthropic/claude-3.5-sonnet"
@@ -333,6 +372,9 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
             value={s.ollama_model}
             onChange={(e) => setS({ ...s, ollama_model: e.target.value })}
           />
+          {modelLooksSmall(s.ollama_model) && (
+            <SmallModelWarning role="executor" />
+          )}
         </div>
 
         <div className="row">
@@ -599,6 +641,33 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+/**
+ * Small amber warning chip shown under planner or executor model
+ * fields when the chosen model name looks ≤3B. Tone matches the
+ * existing yellow "reachable, but model not pulled" chip above so
+ * users recognise it as an advisory, not an error. Scenario-A §9.2
+ * F-4.
+ */
+function SmallModelWarning({ role }: { role: "planner" | "executor" }) {
+  return (
+    <div
+      role="note"
+      className="settings-small-model-warning"
+      aria-label={`${role} model size warning`}
+    >
+      <span aria-hidden="true" className="sa-icon">
+        ⚠
+      </span>
+      <span>
+        Small models (≤3 B) frequently fail to emit tool calls — Scenario A
+        reproduced this on <code>llama3.2:1b</code>. Prefer{" "}
+        <code>qwen2.5-coder:7b</code> or <code>llama3.1:8b</code> for the{" "}
+        {role}.
+      </span>
     </div>
   );
 }

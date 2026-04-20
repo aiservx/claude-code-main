@@ -1517,6 +1517,30 @@ pub(crate) async fn run_chat_turn(
                     "done",
                     Some(&first_line(&final_assistant)),
                 );
+                // Scenario-A §9.2 F-4: if the executor finishes its very
+                // first iteration without emitting *any* tool call, it has
+                // almost certainly failed to parse the tool-call prompt
+                // (small models like `llama3.2:1b` stream planner-style
+                // JSON instead). Surface this to the user as a dedicated
+                // event so the Chat tier can render a visible SystemAction
+                // — the old behaviour was to silently land in reviewer,
+                // which then logged `review skipped (unparsed)` into the
+                // Debug pane where nobody saw it.
+                //
+                // We only fire on `iteration == 0` so later iterations
+                // (executor genuinely signing off after several tool
+                // calls) don't trigger a false positive.
+                if iteration == 0 {
+                    let _ = app.emit(
+                        "ai:executor_unparsed",
+                        json!({
+                            "role": "executor",
+                            "provider": e_provider.as_str(),
+                            "model": e_model,
+                            "reason": "no_tool_calls_first_iteration",
+                        }),
+                    );
+                }
                 break;
             }
             finish_step(
@@ -1707,6 +1731,25 @@ pub(crate) async fn run_chat_turn(
             }
             ReviewVerdict::Unknown => {
                 finish_step(&app, &mut steps, "done", Some("review skipped (unparsed)"));
+                // Scenario-A §9.2 F-4: reviewer couldn't verdict — the
+                // executor text didn't look like a code change. On
+                // small (≤3 B) executors this is the dominant failure
+                // mode, but the old UI only surfaced it as a tiny
+                // Debug-pane step label nobody noticed. Emit a
+                // dedicated event so the Chat tier can render a
+                // visible SystemAction pointing users at a larger
+                // model.
+                let (e_provider_u, _) = resolve_provider(&settings, Role::Executor);
+                let e_model_u = model_for_role(&settings, Role::Executor, e_provider_u);
+                let _ = app.emit(
+                    "ai:executor_unparsed",
+                    json!({
+                        "role": "executor",
+                        "provider": e_provider_u.as_str(),
+                        "model": e_model_u,
+                        "reason": "reviewer_verdict_unknown",
+                    }),
+                );
                 break 'outer;
             }
         }

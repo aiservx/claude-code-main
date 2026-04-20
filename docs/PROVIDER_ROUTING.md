@@ -134,6 +134,34 @@ Both return `reachable`, `model_available`, `error`, and `available_models`.
 The OpenRouter probe additionally returns `key_valid` and
 `credits_remaining`.
 
+## 6a. Model-capability floor
+
+Not every model can drive every role. The executor in particular has
+to emit JSON-shaped tool calls on a structured schema; small models
+fail this silently (they stream prose or planner-style JSON instead,
+and the reviewer then marks the turn `review skipped (unparsed)`).
+
+Tested minimums, empirically validated against Scenario A (see
+`PROJECT_MEMORY.md §9.2` for the full reproduction):
+
+| Role     | Minimum size | Known-good local models                                   | Known-bad (do not use) |
+| -------- | ------------ | ---------------------------------------------------------- | ---------------------- |
+| Executor | **≥ 7 B**    | `qwen2.5-coder:7b`, `llama3.1:8b`, `deepseek-coder:6.7b` | `llama3.2:1b` — fails |
+| Planner  | ≥ 3 B        | `qwen2.5-coder:7b`, `llama3.1:8b`, `llama3.2:3b`          | `llama3.2:1b`          |
+| Reviewer | ≥ 3 B        | `qwen2.5-coder:7b`, `llama3.1:8b`, `llama3.2:3b`          | `llama3.2:1b`          |
+
+The Executor floor is the strictest because it's the only role that
+must emit structured tool calls; the Planner and Reviewer need short
+JSON verdicts or plans which 3 B models can produce reliably enough.
+
+The Settings UI shows an amber advisory under any Planner / Executor
+model field whose name matches `:?[123](\.[05])?\s*b` (heuristic; see
+`modelLooksSmall` in `components/Settings.tsx`) so a user can't
+silently configure an unsupported combination. The Chat tier also
+renders a visible SystemAction bubble when the backend detects an
+unparsed executor turn at runtime (`ai:executor_unparsed` event —
+fires on iteration-0 empty tool calls, or on `ReviewVerdict::Unknown`).
+
 ## 7. Backward compatibility
 
 The settings file carries `provider_mode` with a `#[serde(default)]`

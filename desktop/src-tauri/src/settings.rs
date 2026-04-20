@@ -291,9 +291,14 @@ pub fn set_last_project_dir(
     state: tauri::State<'_, AppState>,
     project_dir: String,
 ) -> Result<(), String> {
-    let mut s = state.write_settings();
-    s.last_project_dir = Some(project_dir);
-    s.save().map_err(|e| e.to_string())?;
+    // Mirror `save_settings`: build the new value off a clone, persist
+    // to disk first, and only then swap it into the shared state. If
+    // `save()` fails we return `Err` without leaving in-memory settings
+    // out of sync with what's on disk (PR #11 Devin Review).
+    let mut updated = state.read_settings().clone();
+    updated.last_project_dir = Some(project_dir);
+    updated.save().map_err(|e| e.to_string())?;
+    *state.write_settings() = updated;
     Ok(())
 }
 

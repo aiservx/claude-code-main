@@ -3,6 +3,7 @@ import {
   api,
   onEvent,
   type DoneEvent,
+  type ExecutorUnparsedEvent,
   type TokenEvent,
   type ErrorEvent,
 } from "../api";
@@ -87,6 +88,7 @@ export function Chat({ projectDir, disabled }: Props) {
   // without another prop round-trip. Audit §7.6.
   const messages = useAppStore((s) => s.messages);
   const setMessages = useAppStore((s) => s.setMessages);
+  const setSettingsOpen = useAppStore((s) => s.setSettingsOpen);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -174,6 +176,33 @@ export function Chat({ projectDir, disabled }: Props) {
             content: `[${p.role ?? "ai"}] error: ${p.message}`,
           },
         ]);
+      }),
+    );
+    // Scenario-A §9.2 F-4: the backend now emits a dedicated event
+    // whenever the executor finishes a turn without producing any
+    // parseable tool call (either iteration-0 empty output, or the
+    // reviewer couldn't verdict). Promote this to a visible chat
+    // bubble — the old behaviour left "review skipped (unparsed)"
+    // as a tiny label in the Debug pane nobody noticed. Dedupe by
+    // id in case both signals fire in the same turn.
+    unlistens.push(
+      onEvent<ExecutorUnparsedEvent>("ai:executor_unparsed", (p) => {
+        setMessages((prev) => {
+          const last = prev[prev.length - 1];
+          if (last && last.kind === "warn_action" && last.role === "system") {
+            return prev;
+          }
+          const modelNote = p.model ? ` (executor: \`${p.model}\`)` : "";
+          return [
+            ...prev,
+            {
+              id: uid(),
+              role: "system",
+              content: `Executor output could not be parsed as tool calls${modelNote}. Try a larger executor model (≥7 B) such as \`qwen2.5-coder:7b\` or \`llama3.1:8b\`.`,
+              kind: "warn_action",
+            },
+          ];
+        });
       }),
     );
     return () => {
@@ -272,7 +301,9 @@ export function Chat({ projectDir, disabled }: Props) {
             Ask the AI to read, edit, or run commands in your project.
           </div>
         )}
-        {messages.map((m, i) => renderMessage(m, tiers[i]))}
+        {messages.map((m, i) =>
+          renderMessage(m, tiers[i], () => setSettingsOpen(true)),
+        )}
         {sending && !messages.some((m) => m.streaming) && (
           <div className="thinking-block is-streaming role-executor">
             <div className="tb-header">
@@ -318,7 +349,11 @@ export function Chat({ projectDir, disabled }: Props) {
   );
 }
 
-function renderMessage(m: ChatMessage, tier: Tier) {
+function renderMessage(
+  m: ChatMessage,
+  tier: Tier,
+  onOpenSettings: () => void,
+) {
   if (tier === "user") {
     return (
       <div key={m.id} className="msg role-user">
@@ -328,6 +363,23 @@ function renderMessage(m: ChatMessage, tier: Tier) {
     );
   }
   if (tier === "system") {
+    if (m.kind === "warn_action") {
+      // F-4: executor-unparsed notice. Click opens Settings so the
+      // user can swap to a larger executor model. Dedicated class
+      // adds a second line of weight so this cannot get mistaken
+      // for a routine info pill (which is the whole point — the
+      // old "review skipped (unparsed)" label was invisible).
+      return (
+        <SystemAction
+          key={m.id}
+          icon="⚠"
+          tone="warn"
+          text={m.content}
+          onClick={onOpenSettings}
+          title="Open Settings to change the executor model"
+        />
+      );
+    }
     return (
       <SystemAction
         key={m.id}
