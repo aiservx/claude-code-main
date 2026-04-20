@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api, onEvent } from "../api";
+import { useAppStore } from "../store";
 import type {
   FailureLogEntry,
   Task,
@@ -34,6 +35,13 @@ export function TaskPanel({ projectDir, disabled }: Props) {
   const [circuitTripped, setCircuitTripped] =
     useState<TaskCircuitTrippedEvent | null>(null);
   const runningRef = useRef(false);
+
+  // Scenario-A §9.2 F-2: the backend emits `goal:planning` /
+  // `goal:planning_done` while the project scan and planner stream are
+  // running. App.tsx stores the current phase; we render a
+  // lightweight chip here so the pane isn't silent for the 2+ minute
+  // pre-execution window on small local models.
+  const goalPlanning = useAppStore((s) => s.goalPlanning);
 
   // Load any previously-persisted active tree and failures log when the
   // project opens.
@@ -305,6 +313,21 @@ export function TaskPanel({ projectDir, disabled }: Props) {
           Circuit breaker tripped after {circuitTripped.consecutive_failures}{" "}
           consecutive failures (threshold {circuitTripped.threshold}). Goal
           halted.
+        </div>
+      )}
+
+      {goalPlanning && (
+        <div
+          className={`task-planning-chip task-planning-chip-${goalPlanning}`}
+          role="status"
+          aria-live="polite"
+        >
+          <span className="task-planning-spinner" aria-hidden>
+            ⋯
+          </span>
+          {goalPlanning === "scanning"
+            ? "Scanning project…"
+            : "Planner drafting task list…"}
         </div>
       )}
 

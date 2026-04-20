@@ -131,6 +131,13 @@ pub async fn start_goal(
     state.cancelled.reset();
     state.goal_cancelled.reset();
 
+    // Scenario-A §9.2 F-2: let the UI surface a "planning" chip the
+    // moment a goal run starts — the scan and planner stream can each
+    // take tens of seconds on slow hardware or small local models, and
+    // without this the TaskPanel shows only its empty-state placeholder
+    // for the entire pre-execution phase.
+    tasks::emit_goal_planning(&app, &goal, "scanning");
+
     // 1. Scan the project so the executor (and the user) has a map.
     let pmap = project_scan::scan_project(&project_dir);
     if let Err(e) = project_scan::save_project_map(&project_dir, &pmap) {
@@ -153,6 +160,14 @@ pub async fn start_goal(
     let settings = state.read_settings().clone();
     let max_total = settings.max_total_tasks.max(1) as usize;
     let goal_timeout_secs = settings.goal_timeout_secs;
+
+    // Transition the "planning" chip from "scanning project…" to
+    // "planner drafting task list…" now that the scan is done. See
+    // `emit_goal_planning` docstring. Cleared in two places below: right
+    // before `emit_goal_started` (success path), and in the planner-
+    // failure heuristic fallback (so the chip never outlives the phase
+    // it describes).
+    tasks::emit_goal_planning(&app, &goal, "planning");
 
     // 2. Plan the goal into a task tree.
     let mut tree = TaskTree::new(goal.clone());
@@ -180,6 +195,9 @@ pub async fn start_goal(
     }
     tree.updated_at = tasks::unix_ts();
     let _ = tasks::persist_active_tree(&project_dir, &tree);
+    // Planning is over (success path). Clear the pre-execution chip so
+    // the TaskPanel switches from "planning…" to the real task list.
+    tasks::emit_goal_planning_done(&app);
     tasks::emit_goal_started(&app, &tree);
 
     // 3. Execute tasks sequentially, bounded by the global goal timeout.

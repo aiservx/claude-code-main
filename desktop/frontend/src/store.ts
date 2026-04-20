@@ -28,6 +28,14 @@ export const EVENTS_CAP = 500;
 
 export type HealthStatus = boolean | null;
 
+/**
+ * Narrows the copy rendered in TaskPanel's pre-execution "planning…"
+ * chip. `null` means no goal is currently in the planning phase.
+ * Scenario-A §9.2 F-2: without this, the pane was silent for the
+ * entire 2+ minute plan phase on small local models.
+ */
+export type GoalPlanningPhase = "scanning" | "planning" | null;
+
 export interface AppState {
   // --- session identity ---
   projectDir: string | null;
@@ -44,6 +52,9 @@ export interface AppState {
   // --- execution / debug log (ring-buffered) ---
   events: ExecutionEvent[];
 
+  // --- pre-execution planning chip (F-2) ---
+  goalPlanning: GoalPlanningPhase;
+
   // --- UI toggles ---
   debugOpen: boolean;
   explorerOpen: boolean;
@@ -54,6 +65,8 @@ export interface AppState {
   bumpFsTick: () => void;
   setPlannerOk: (ok: HealthStatus) => void;
   setExecutorOk: (ok: HealthStatus) => void;
+
+  setGoalPlanning: (phase: GoalPlanningPhase) => void;
 
   setMessages: (
     updater: ChatMessage[] | ((prev: ChatMessage[]) => ChatMessage[]),
@@ -86,6 +99,7 @@ export const useAppStore = create<AppState>((set) => ({
   executorOk: null,
   messages: [],
   events: [],
+  goalPlanning: null,
   debugOpen: false,
   explorerOpen: true,
   settingsOpen: false,
@@ -94,6 +108,8 @@ export const useAppStore = create<AppState>((set) => ({
   bumpFsTick: () => set((s) => ({ fsTick: s.fsTick + 1 })),
   setPlannerOk: (ok) => set({ plannerOk: ok }),
   setExecutorOk: (ok) => set({ executorOk: ok }),
+
+  setGoalPlanning: (phase) => set({ goalPlanning: phase }),
 
   setMessages: (updater) =>
     set((s) => ({

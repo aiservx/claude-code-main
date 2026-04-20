@@ -40,6 +40,7 @@ export default function App() {
   const toggleExplorer = useAppStore((s) => s.toggleExplorer);
   const settingsOpen = useAppStore((s) => s.settingsOpen);
   const setSettingsOpen = useAppStore((s) => s.setSettingsOpen);
+  const setGoalPlanning = useAppStore((s) => s.setGoalPlanning);
 
   // Health check on mount and when settings close
   const refreshHealth = useCallback(async () => {
@@ -83,12 +84,24 @@ export default function App() {
       ),
     );
     unlistens.push(onEvent<FsChange>("fs:changed", () => bumpFsTick()));
+    // Scenario-A §9.2 F-2: show a "planning…" chip in TaskPanel from
+    // the moment a goal run starts. `goal:planning` fires at scan start
+    // and again when the planner stream begins; `goal:planning_done`
+    // fires right before the task tree is populated (or on failure).
+    unlistens.push(
+      onEvent<{ phase: "scanning" | "planning" }>("goal:planning", (p) =>
+        setGoalPlanning(p.phase),
+      ),
+    );
+    unlistens.push(
+      onEvent<unknown>("goal:planning_done", () => setGoalPlanning(null)),
+    );
     return () => {
       for (const p of unlistens) {
         void p.then((fn) => fn());
       }
     };
-  }, [pushEvent, pushError, bumpFsTick]);
+  }, [pushEvent, pushError, bumpFsTick, setGoalPlanning]);
 
   // Watcher lifecycle tied to the opened project.
   useEffect(() => {
@@ -124,8 +137,50 @@ export default function App() {
           at: Date.now(),
         },
       ]);
+      // Scenario-A §9.2 F-8: remember this as the last-opened project
+      // so a subsequent boot can auto-restore it. Failure to persist is
+      // non-fatal — just log it, don't break the open flow.
+      api.setLastProjectDir(selected).catch((e) => {
+        pushError(`Failed to persist last project: ${String(e)}`);
+      });
     }
-  }, [setProjectDir, resetMessages, replaceEvents]);
+  }, [setProjectDir, resetMessages, replaceEvents, pushError]);
+
+  // Scenario-A §9.2 F-8: on boot, auto-restore the last-opened project
+  // if we have one and it still exists on disk. A single `list_dir` on
+  // the root doubles as an existence probe — if the dir is gone we
+  // silently skip restore rather than booting into a broken project.
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const last = await api.getLastProjectDir();
+        if (cancelled || !last) return;
+        try {
+          await api.listDir(last, "");
+        } catch {
+          return; // directory no longer readable — skip restore
+        }
+        if (cancelled) return;
+        setProjectDir(last);
+        replaceEvents([
+          {
+            kind: "info",
+            text: `Restored last project: ${last}`,
+            at: Date.now(),
+          },
+        ]);
+      } catch {
+        // ignore — first-run boot has no last project yet
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // Intentionally empty deps — boot-time only. The store setters we
+    // call are stable identities from Zustand.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const statusPlanner = useMemo(() => {
     if (plannerOk === null) return "checking…";

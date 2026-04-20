@@ -112,9 +112,33 @@ provider routing, `ai:step` metadata, and fallback stay consistent.
 
 ### Health probes
 
+Two layers: the **deep probes** (explicit "Test" buttons in Settings)
+and the **lightweight role probes** (topbar badges).
+
+Deep probes:
+
 - `probe_ollama` — 10 s timeout, returns reachable + models.
 - `probe_openrouter` — 10 s timeout, returns
   `{ reachable, key_valid, model, credits }`.
+
+Role probes (PR #10, Scenario-A §9.2 F-1):
+
+- `check_planner` / `check_executor` both delegate to a single helper
+  `check_role_reachable(settings, role)` in `ai.rs`. The helper calls
+  `resolve_provider(settings, role).primary` and probes whichever
+  backend that role will *actually* use under the current
+  `ProviderMode`:
+  - `Provider::OpenRouter` → reachable iff `openrouter_api_key` is
+    non-empty. (No network; a full round-trip is available via
+    `probe_openrouter`.)
+  - `Provider::Ollama` → reachable iff `GET /api/tags` returns 2xx
+    within 10 s.
+- This is what powers the topbar's two status badges. Before PR #10 the
+  badges were hard-coded to OpenRouter-key (planner) and Ollama-tags
+  (executor), which lied in both Cloud and Local mode. The executor
+  badge text was also re-labelled from the provider-specific "ollama
+  online / offline" to the provider-neutral **"executor ready / off"**
+  for the same reason.
 
 10 s is deliberately long: Ollama cold-starts a model on the first probe
 after idle. The 3 s we used to have produced false "planner offline"
@@ -319,8 +343,17 @@ frontend listens in `App.tsx` via `listen(name, cb)` and the callback
 calls the appropriate store action (`pushEvent`, `pushError`,
 `setMessages`, ...). **New events must:**
 
-1. Emit from Rust with a stable name (prefix `ai:` for model activity,
-   `task:` for controller activity).
+1. Emit from Rust with a stable name. Prefixes in use today:
+   - `ai:` — raw model activity (token, tool_call, tool_result, step,
+     done, error, confirm_request).
+   - `task:` — per-task controller lifecycle (goal_started, added,
+     update, trace, goal_done, failure_logged, circuit_tripped).
+   - `goal:` — top-level pre-execution phase (`planning`,
+     `planning_done`; PR #11, Scenario-A §9.2 F-2). These fire once
+     before any `task:` event and again when the pre-execution window
+     closes, so the TaskPanel can show a "planning…" chip.
+   - `fs:` — filesystem watcher (`changed`).
+   - `project:` — one-shot project-level signals (`scan_done`).
 2. Add the payload type to `frontend/src/types.ts`.
 3. Add a listener in `App.tsx` and route it through a store action —
    never a local `useState`.
@@ -486,10 +519,11 @@ emitter cannot grow `events` beyond 500 entries.
   cancel action surfaced as a single muted pill
   `• [executor] error: cancelled: goal`, not a full bubble. Phase 3's
   three-tier hierarchy is behaving as designed for system events.
-- **Ollama health probe is honest.** The top-right
-  `• ollama online` badge was green while Ollama was up and flipped to
-  warning when the daemon was restarted mid-session. `probe_ollama`
-  works.
+- **Ollama health probe is honest.** The top-right executor badge
+  (pre-PR-#10 labelled `• ollama online`, now `• executor ready` — see
+  the [Health probes](#health-probes) section for the PR #10 rename)
+  was green while Ollama was up and flipped to warning when the daemon
+  was restarted mid-session. `probe_ollama` works.
 
 ### 9.2 Critical findings (block the golden path)
 
@@ -668,9 +702,14 @@ emitter cannot grow `events` beyond 500 entries.
       the topbar executor badge is re-labelled provider-neutrally
       ("executor ready / off") instead of always saying "ollama online /
       offline" regardless of `ProviderMode`.
-- [ ] **Fix F-2** — emit a synthetic `planning` status from
-      `start_goal` so TaskPanel shows a live chip *before* any tasks
-      are parsed.
+- [x] **Fix F-2** — `controller::start_goal` now emits
+      `goal:planning` (phase `"scanning"`, then `"planning"`) and
+      `goal:planning_done` around the pre-execution window. App.tsx
+      listens and stores the phase on `useAppStore.goalPlanning`;
+      TaskPanel renders a pulsing "Scanning project… / Planner
+      drafting task list…" chip until the first task is parsed, so the
+      pane is no longer silent during the 2+ minute plan phase on
+      small local models.
 - [x] **Fix F-3** — the task progress bar now carries a
       `task-progress-bar-<runState>` modifier class and recolours its
       fill to amber (`cancelled`) or red (`failed` / `timeout`); only
@@ -681,7 +720,12 @@ emitter cannot grow `events` beyond 500 entries.
       `streaming_role === "planner"` from the final-answer candidate
       slot (previously only reviewer was excluded), so a streaming
       planner bubble is never transiently tagged as `FinalAnswer`.
-- [ ] **Fix F-8** — persist last-opened project dir.
+- [x] **Fix F-8** — `Settings` gained a `last_project_dir: Option<String>`
+      field with focused `set_last_project_dir` /
+      `get_last_project_dir` Tauri commands. App.tsx calls the setter
+      from the `Open project…` flow and, on boot, reads the getter and
+      auto-opens the saved directory if it still exists on disk
+      (silently skipped if the dir has since been deleted or moved).
 - [ ] **Improve F-4** — surface a louder "unparsed executor output"
       SystemAction and add a model-size warning in Settings.
 - [ ] **Retry Scenario A on `qwen2.5-coder:7b` or `llama3.1:8b`**

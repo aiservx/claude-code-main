@@ -137,6 +137,14 @@ pub struct Settings {
     /// values below 2 are silently clamped at call time.
     #[serde(default = "default_context_compaction_keep_last")]
     pub context_compaction_keep_last: u32,
+    /// Absolute path to the most recently opened project directory.
+    /// Set by `set_last_project_dir` (called from `open_project` in
+    /// the frontend) and consumed by `get_last_project_dir` on boot so
+    /// the app can auto-restore the user's last working project.
+    /// `None` on first run and after the user has never opened a
+    /// project. Scenario-A §9.2 F-8.
+    #[serde(default)]
+    pub last_project_dir: Option<String>,
 }
 
 fn default_true() -> bool {
@@ -232,6 +240,7 @@ impl Default for Settings {
             autonomous_confirm_irreversible: false,
             context_compaction_enabled: false,
             context_compaction_keep_last: default_context_compaction_keep_last(),
+            last_project_dir: None,
         }
     }
 }
@@ -271,4 +280,30 @@ pub fn save_settings(
     settings.save().map_err(|e| e.to_string())?;
     *state.write_settings() = settings;
     Ok(())
+}
+
+/// Persist `project_dir` as the last-opened project. Small focused
+/// command so the frontend can call it from `open_project` without
+/// having to round-trip a full `Settings` payload just to update one
+/// field. Scenario-A §9.2 F-8.
+#[tauri::command]
+pub fn set_last_project_dir(
+    state: tauri::State<'_, AppState>,
+    project_dir: String,
+) -> Result<(), String> {
+    let mut s = state.write_settings();
+    s.last_project_dir = Some(project_dir);
+    s.save().map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+/// Return the last-opened project dir if one was recorded. The
+/// frontend calls this on boot and, if a dir is returned and still
+/// exists on disk, auto-opens it so the user's last project is
+/// restored without having to click "Open project…" every launch.
+#[tauri::command]
+pub fn get_last_project_dir(
+    state: tauri::State<'_, AppState>,
+) -> Result<Option<String>, String> {
+    Ok(state.read_settings().last_project_dir.clone())
 }
