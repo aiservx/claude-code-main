@@ -83,13 +83,16 @@ Three modes, selected in Settings → *Provider mode*:
 |---|---|---|---|---|
 | **Cloud** | OpenRouter | OpenRouter | OpenRouter | You want the best plans and have an API key. |
 | **Local** (default) | Ollama | Ollama | Ollama | Fully offline, no external network. |
-| **Hybrid** | OpenRouter | Ollama | Ollama | Best plans, free execution. |
+| **Hybrid** | OpenRouter | Ollama | OpenRouter | Reasoning roles on OpenRouter, high-throughput tool loop local. |
 
 Selection happens in `ai.rs::resolve_provider(settings, role) -> (primary, fallback)`.
-`Hybrid` is the only mode that declares a fallback — if the OpenRouter
-planner is unavailable it falls back to Ollama silently. `Cloud` and
-`Local` have **no** fallback, so a misconfigured `Cloud` mode fails
-loudly; that is by design (audit OCCD §6.4).
+`Hybrid` is the only mode that declares a fallback: Planner and Reviewer
+primary on OpenRouter → fallback to Ollama, Executor primary on Ollama
+→ fallback to OpenRouter. If OpenRouter is unavailable the reasoning
+roles silently downgrade to local; if Ollama is unavailable the
+executor silently promotes to OpenRouter. `Cloud` and `Local` have
+**no** fallback, so a misconfigured `Cloud` mode fails loudly; that is
+by design (audit OCCD §6.4).
 
 ### Per-role models
 
