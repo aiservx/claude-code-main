@@ -927,28 +927,54 @@ async fn call_provider(
 
 // ---------- Top-level commands ----------
 
+/// Probe whichever provider a role resolves to under the current
+/// [`ProviderMode`]:
+///
+/// - `Provider::OpenRouter` — reachable iff the API key is non-empty.
+///   (We deliberately do not hit the network here; a full round-trip
+///   is available via `probe_openrouter`.)
+/// - `Provider::Ollama` — reachable iff `GET /api/tags` returns 2xx
+///   within 10 s.
+///
+/// This is what powers the topbar "planner ready / off" and
+/// "ollama online / offline" badges. Before Scenario-A §9.2 F-1, the
+/// planner probe only checked the OpenRouter key — which reported
+/// `planner off` even when Local mode was happily serving the planner
+/// via Ollama. Routing through [`resolve_provider`] keeps the badges
+/// honest across all three modes.
+async fn check_role_reachable(settings: &Settings, role: Role) -> bool {
+    let (primary, _fallback) = resolve_provider(settings, role);
+    match primary {
+        Provider::OpenRouter => !settings.openrouter_api_key.is_empty(),
+        Provider::Ollama => {
+            let url = format!(
+                "{}/api/tags",
+                settings.ollama_base_url.trim_end_matches('/')
+            );
+            let Ok(client) = reqwest::Client::builder()
+                .timeout(std::time::Duration::from_secs(10))
+                .build()
+            else {
+                return false;
+            };
+            match client.get(&url).send().await {
+                Ok(r) => r.status().is_success(),
+                Err(_) => false,
+            }
+        }
+    }
+}
+
 #[tauri::command]
 pub async fn check_planner(state: tauri::State<'_, AppState>) -> Result<bool, String> {
-    let key = state.read_settings().openrouter_api_key.clone();
-    Ok(!key.is_empty())
+    let settings = state.read_settings().clone();
+    Ok(check_role_reachable(&settings, Role::Planner).await)
 }
 
 #[tauri::command]
 pub async fn check_executor(state: tauri::State<'_, AppState>) -> Result<bool, String> {
-    let base = state.read_settings().ollama_base_url.clone();
-    let url = format!("{}/api/tags", base.trim_end_matches('/'));
-    // 10s (up from 3s): the first probe after launching `ollama serve`
-    // can stall for several seconds while the daemon warms up its
-    // model index, and a remote/LAN Ollama easily loses the race on a
-    // 3s budget even when it is perfectly healthy.
-    let client = reqwest::Client::builder()
-        .timeout(std::time::Duration::from_secs(10))
-        .build()
-        .map_err(|e| e.to_string())?;
-    match client.get(&url).send().await {
-        Ok(r) => Ok(r.status().is_success()),
-        Err(_) => Ok(false),
-    }
+    let settings = state.read_settings().clone();
+    Ok(check_role_reachable(&settings, Role::Executor).await)
 }
 
 /// Detailed connection probe for the Ollama executor. Takes the form-level

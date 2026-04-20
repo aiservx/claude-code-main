@@ -38,9 +38,13 @@ function uid() {
  *
  * A "turn" starts at a user message and ends at the next one. Within a
  * turn the final-answer bubble is the **last** assistant message whose
- * `streaming_role` is either `executor` or missing (legacy / synthesised
- * bubbles). Reviewer bubbles never become the final answer even when
- * they are the last assistant in a turn.
+ * `streaming_role` is `executor` (or missing, i.e. legacy / synthesised
+ * bubbles). Planner and reviewer bubbles are never the final answer —
+ * even when they're the last assistant in a turn, and even during
+ * streaming. Scenario-A §9.2 F-5: without explicitly excluding the
+ * planner, the first streaming planner bubble renders as `FinalAnswer`
+ * until a later executor bubble arrives and demotes it, which is
+ * visually jarring.
  */
 type Tier = "user" | "system" | "final" | "thinking";
 
@@ -63,7 +67,9 @@ function classifyMessages(messages: ChatMessage[]): Tier[] {
     }
     // assistant
     const r = m.streaming_role;
-    if (r === "reviewer") {
+    if (r === "planner" || r === "reviewer") {
+      // Planner and reviewer are always thinking; they never promote
+      // to the turn's final-answer slot. See doc comment above.
       tiers[i] = "thinking";
       continue;
     }

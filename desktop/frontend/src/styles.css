@@ -793,7 +793,21 @@ textarea:focus {
 .task-progress-fill {
   height: 100%;
   background: #3fb950;
-  transition: width 0.2s ease;
+  transition: width 0.2s ease, background-color 0.2s ease;
+}
+/* Scenario-A §9.2 F-3: a cancelled / failed / timed-out goal must not
+ * paint its progress bar the same success green as a completed one.
+ * The run-state modifier class recolours the fill so a glance at the
+ * bar always communicates the correct outcome. */
+.task-progress-bar-cancelled .task-progress-fill {
+  background: #d29922; /* amber */
+}
+.task-progress-bar-failed .task-progress-fill,
+.task-progress-bar-timeout .task-progress-fill {
+  background: #f85149; /* red */
+}
+.task-progress-bar-idle .task-progress-fill {
+  background: var(--fg-dim);
 }
 
 .task-list {
