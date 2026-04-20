@@ -492,6 +492,7 @@ async fn stream_openrouter(
     messages: &[WireMessage],
     tools_schema: Option<&Value>,
     role: Role,
+    json_mode: bool,
     cancel: &CancelToken,
 ) -> Result<WireMessage, String> {
     if cancel.is_cancelled() {
@@ -505,7 +506,15 @@ async fn stream_openrouter(
         "messages": messages,
         "stream": true,
     });
-    if let Some(schema) = tools_schema {
+    // `json_mode` forces the model to return a valid JSON object. It is
+    // intended for the goal planner (see `plan_goal`), where the
+    // downstream code does strict `serde_json` parsing. When json mode
+    // is on we skip tool schemas entirely: not every OpenRouter model
+    // accepts `response_format` + `tools` simultaneously, and the goal
+    // planner is pure text-in / JSON-out — no tools are needed.
+    if json_mode {
+        body["response_format"] = json!({ "type": "json_object" });
+    } else if let Some(schema) = tools_schema {
         body["tools"] = schema.clone();
         body["tool_choice"] = json!("auto");
     }
@@ -667,6 +676,7 @@ async fn stream_ollama(
     messages: &[WireMessage],
     tools_schema: Option<&Value>,
     role: Role,
+    json_mode: bool,
     cancel: &CancelToken,
 ) -> Result<WireMessage, String> {
     if cancel.is_cancelled() {
@@ -678,7 +688,14 @@ async fn stream_ollama(
         "messages": messages,
         "stream": true,
     });
-    if let Some(schema) = tools_schema {
+    // Ollama's native JSON-output constraint. Same semantics as
+    // OpenRouter's `response_format: json_object` — forces a valid JSON
+    // object on output. We also drop the tool schema when json mode is
+    // on, both to match OpenRouter's behaviour and because the goal
+    // planner does not need tools.
+    if json_mode {
+        body["format"] = json!("json");
+    } else if let Some(schema) = tools_schema {
         body["tools"] = schema.clone();
     }
     let client = reqwest::Client::builder()
@@ -775,6 +792,7 @@ async fn call_model(
     role: Role,
     messages: &[WireMessage],
     tools_schema: Option<&Value>,
+    json_mode: bool,
     cancel: &CancelToken,
 ) -> Result<WireMessage, String> {
     let (primary, fallback) = resolve_provider(settings, role);
@@ -787,6 +805,7 @@ async fn call_model(
         role,
         messages,
         tools_schema,
+        json_mode,
         cancel,
     )
     .await
@@ -837,6 +856,7 @@ async fn call_model(
                 role,
                 messages,
                 tools_schema,
+                json_mode,
                 cancel,
             )
             .await
@@ -865,15 +885,35 @@ async fn call_provider(
     role: Role,
     messages: &[WireMessage],
     tools_schema: Option<&Value>,
+    json_mode: bool,
     cancel: &CancelToken,
 ) -> Result<WireMessage, String> {
     match provider {
         Provider::OpenRouter => {
-            stream_openrouter(app, settings, Some(model), messages, tools_schema, role, cancel)
-                .await
+            stream_openrouter(
+                app,
+                settings,
+                Some(model),
+                messages,
+                tools_schema,
+                role,
+                json_mode,
+                cancel,
+            )
+            .await
         }
         Provider::Ollama => {
-            stream_ollama(app, settings, Some(model), messages, tools_schema, role, cancel).await
+            stream_ollama(
+                app,
+                settings,
+                Some(model),
+                messages,
+                tools_schema,
+                role,
+                json_mode,
+                cancel,
+            )
+            .await
         }
     }
 }
@@ -1219,7 +1259,9 @@ pub async fn send_chat(
     // Chat-driven turns never force autonomous confirms — the user is
     // already in the loop by construction, and the existing confirm
     // modal handles unfamiliar `run_cmd`s via `cmd_confirm_required`.
-    run_chat_turn(app, &state, project_dir, message, history, false).await
+    // `json_mode = false` — normal chat is free-form prose; only
+    // `plan_goal` opts into strict JSON output.
+    run_chat_turn(app, &state, project_dir, message, history, false, false).await
 }
 
 /// A chat turn's cancel scope. Run-time callers (`send_chat`,
@@ -1272,6 +1314,12 @@ pub(crate) async fn run_chat_turn(
     message: String,
     history: Vec<UiMessage>,
     autonomous_confirm: bool,
+    // When true, every model call in this turn is placed in
+    // JSON-output mode (`response_format: {type: "json_object"}` on
+    // OpenRouter, `format: "json"` on Ollama). Used by the goal
+    // planner (`controller::plan_goal`) so small local models cannot
+    // wrap the task list in prose/markdown. Off for normal chat.
+    json_mode: bool,
 ) -> Result<ChatResponse, String> {
     // Re-arm the per-turn cancel token. A prior `cancel_chat` press must
     // not poison the next turn; the controller is responsible for not
@@ -1339,6 +1387,7 @@ pub(crate) async fn run_chat_turn(
             Role::Planner,
             &planner_messages(&history, &message, project_ctx_ref),
             None,
+            json_mode,
             &cancel,
         )
         .await
@@ -1399,7 +1448,13 @@ pub(crate) async fn run_chat_turn(
                 &settings,
                 Role::Executor,
                 &messages,
-                Some(&schema),
+                // When the whole turn is in json_mode the executor
+                // is not supposed to call tools — the goal planner
+                // expects pure JSON output. Dropping the schema here
+                // matches the behaviour we negotiate with the
+                // provider in `stream_*`.
+                if json_mode { None } else { Some(&schema) },
+                json_mode,
                 &cancel,
             )
             .await
@@ -1572,6 +1627,10 @@ pub(crate) async fn run_chat_turn(
             Role::Reviewer,
             &review_messages,
             None,
+            // Reviewer output is a short OK/NEEDS_FIX verdict,
+            // never JSON. Always plain mode regardless of the outer
+            // turn's `json_mode` flag.
+            false,
             &cancel,
         )
         .await;
