@@ -1,0 +1,684 @@
+﻿اسم الموديل,التصنيف,الموفر (Provider),الرابط المباشر
+Kling: Video O1,فيديو (Video),N/A,https://openrouter.ai/kwaivgi/kling-video-o1
+MoonshotAI: Kimi K2.6,كتابة (Text),N/A,https://openrouter.ai/moonshotai/kimi-k2.6
+Mistral: Voxtral Mini TTS,صوت/نطق (TTS),N/A,https://openrouter.ai/mistralai/voxtral-mini-tts-2603
+OpenAI: GPT-4o Mini TTS,صوت/نطق (TTS),N/A,https://openrouter.ai/openai/gpt-4o-mini-tts-2025-12-15
+Google: Gemini Embedding 2 Preview,إحداثيات (Embeddings),N/A,https://openrouter.ai/google/gemini-embedding-2-preview
+Anthropic: Claude Opus 4.7,كتابة (Text),N/A,https://openrouter.ai/anthropic/claude-opus-4.7
+Alibaba: Wan 2.7,فيديو (Video),N/A,https://openrouter.ai/alibaba/wan-2.7
+ByteDance: Seedance 2.0 Fast,فيديو (Video),N/A,https://openrouter.ai/bytedance/seedance-2.0-fast
+ByteDance: Seedance 2.0,فيديو (Video),N/A,https://openrouter.ai/bytedance/seedance-2.0
+Elephant,كتابة (Text),N/A,https://openrouter.ai/openrouter/elephant-alpha
+Anthropic: Claude Opus 4.6 (Fast),كتابة (Text),N/A,https://openrouter.ai/anthropic/claude-opus-4.6-fast
+Z.ai: GLM 5.1,كتابة (Text),N/A,https://openrouter.ai/z-ai/glm-5.1
+Cohere: Rerank 4 Pro,إعادة ترتيب (Rerank),N/A,https://openrouter.ai/cohere/rerank-4-pro
+Cohere: Rerank 4 Fast,إعادة ترتيب (Rerank),N/A,https://openrouter.ai/cohere/rerank-4-fast
+Cohere: Rerank v3.5,إعادة ترتيب (Rerank),N/A,https://openrouter.ai/cohere/rerank-v3.5
+Google: Gemma 4 26B A4B  (free),كتابة (Text),N/A,https://openrouter.ai/google/gemma-4-26b-a4b-it:free
+Google: Gemma 4 26B A4B,كتابة (Text),N/A,https://openrouter.ai/google/gemma-4-26b-a4b-it
+Google: Gemma 4 31B (free),كتابة (Text),N/A,https://openrouter.ai/google/gemma-4-31b-it:free
+Google: Gemma 4 31B,كتابة (Text),N/A,https://openrouter.ai/google/gemma-4-31b-it
+Qwen: Qwen3.6 Plus,كتابة (Text),N/A,https://openrouter.ai/qwen/qwen3.6-plus
+Z.ai: GLM 5V Turbo,كتابة (Text),N/A,https://openrouter.ai/z-ai/glm-5v-turbo
+Arcee AI: Trinity Large Thinking,كتابة (Text),N/A,https://openrouter.ai/arcee-ai/trinity-large-thinking
+xAI: Grok 4.20 Multi-Agent,كتابة (Text),N/A,https://openrouter.ai/x-ai/grok-4.20-multi-agent
+xAI: Grok 4.20,كتابة (Text),N/A,https://openrouter.ai/x-ai/grok-4.20
+Google: Lyria 3 Pro Preview,كتابة (Text),N/A,https://openrouter.ai/google/lyria-3-pro-preview
+Google: Lyria 3 Clip Preview,كتابة (Text),N/A,https://openrouter.ai/google/lyria-3-clip-preview
+Alibaba: Wan 2.6,فيديو (Video),N/A,https://openrouter.ai/alibaba/wan-2.6
+Kwaipilot: KAT-Coder-Pro V2,كتابة (Text),N/A,https://openrouter.ai/kwaipilot/kat-coder-pro-v2
+ByteDance: Seedance 1.5 Pro,فيديو (Video),N/A,https://openrouter.ai/bytedance/seedance-1-5-pro
+OpenAI: Sora 2 Pro,فيديو (Video),N/A,https://openrouter.ai/openai/sora-2-pro
+Google: Veo 3.1,فيديو (Video),N/A,https://openrouter.ai/google/veo-3.1
+Reka Edge,كتابة (Text),N/A,https://openrouter.ai/rekaai/reka-edge
+Xiaomi: MiMo-V2-Omni,كتابة (Text),N/A,https://openrouter.ai/xiaomi/mimo-v2-omni
+Xiaomi: MiMo-V2-Pro,كتابة (Text),N/A,https://openrouter.ai/xiaomi/mimo-v2-pro
+MiniMax: MiniMax M2.7,كتابة (Text),N/A,https://openrouter.ai/minimax/minimax-m2.7
+OpenAI: GPT-5.4 Nano,كتابة (Text),N/A,https://openrouter.ai/openai/gpt-5.4-nano
+OpenAI: GPT-5.4 Mini,كتابة (Text),N/A,https://openrouter.ai/openai/gpt-5.4-mini
+Mistral: Mistral Small 4,كتابة (Text),N/A,https://openrouter.ai/mistralai/mistral-small-2603
+Perplexity: Embed V1 4B,إحداثيات (Embeddings),N/A,https://openrouter.ai/perplexity/pplx-embed-v1-4b
+Perplexity: Embed V1 0.6B,إحداثيات (Embeddings),N/A,https://openrouter.ai/perplexity/pplx-embed-v1-0.6b
+Z.ai: GLM 5 Turbo,كتابة (Text),N/A,https://openrouter.ai/z-ai/glm-5-turbo
+NVIDIA: Nemotron 3 Super (free),كتابة (Text),N/A,https://openrouter.ai/nvidia/nemotron-3-super-120b-a12b:free
+NVIDIA: Nemotron 3 Super,كتابة (Text),N/A,https://openrouter.ai/nvidia/nemotron-3-super-120b-a12b
+ByteDance Seed: Seed-2.0-Lite,كتابة (Text),N/A,https://openrouter.ai/bytedance-seed/seed-2.0-lite
+Qwen: Qwen3.5-9B,كتابة (Text),N/A,https://openrouter.ai/qwen/qwen3.5-9b
+OpenAI: GPT-5.4 Pro,كتابة (Text),N/A,https://openrouter.ai/openai/gpt-5.4-pro
+OpenAI: GPT-5.4,كتابة (Text),N/A,https://openrouter.ai/openai/gpt-5.4
+Inception: Mercury 2,كتابة (Text),N/A,https://openrouter.ai/inception/mercury-2
+OpenAI: GPT-5.3 Chat,كتابة (Text),N/A,https://openrouter.ai/openai/gpt-5.3-chat
+Google: Gemini 3.1 Flash Lite Preview,كتابة (Text),N/A,https://openrouter.ai/google/gemini-3.1-flash-lite-preview
+ByteDance Seed: Seed-2.0-Mini,كتابة (Text),N/A,https://openrouter.ai/bytedance-seed/seed-2.0-mini
+Google: Nano Banana 2 (Gemini 3.1 Flash Image Preview),صور (Image),N/A,https://openrouter.ai/google/gemini-3.1-flash-image-preview
+Qwen: Qwen3.5-35B-A3B,كتابة (Text),N/A,https://openrouter.ai/qwen/qwen3.5-35b-a3b
+Qwen: Qwen3.5-27B,كتابة (Text),N/A,https://openrouter.ai/qwen/qwen3.5-27b
+Qwen: Qwen3.5-122B-A10B,كتابة (Text),N/A,https://openrouter.ai/qwen/qwen3.5-122b-a10b
+Qwen: Qwen3.5-Flash,كتابة (Text),N/A,https://openrouter.ai/qwen/qwen3.5-flash-02-23
+LiquidAI: LFM2-24B-A2B,كتابة (Text),N/A,https://openrouter.ai/liquid/lfm-2-24b-a2b
+Google: Gemini 3.1 Pro Preview Custom Tools,كتابة (Text),N/A,https://openrouter.ai/google/gemini-3.1-pro-preview-customtools
+NVIDIA: Llama Nemotron Embed VL 1B V2 (free),إحداثيات (Embeddings),N/A,https://openrouter.ai/nvidia/llama-nemotron-embed-vl-1b-v2:free
+OpenAI: GPT-5.3-Codex,كتابة (Text),N/A,https://openrouter.ai/openai/gpt-5.3-codex
+AionLabs: Aion-2.0,كتابة (Text),N/A,https://openrouter.ai/aion-labs/aion-2.0
+Google: Gemini 3.1 Pro Preview,كتابة (Text),N/A,https://openrouter.ai/google/gemini-3.1-pro-preview
+Anthropic: Claude Sonnet 4.6,كتابة (Text),N/A,https://openrouter.ai/anthropic/claude-sonnet-4.6
+Qwen: Qwen3.5 Plus 2026-02-15,كتابة (Text),N/A,https://openrouter.ai/qwen/qwen3.5-plus-02-15
+Qwen: Qwen3.5 397B A17B,كتابة (Text),N/A,https://openrouter.ai/qwen/qwen3.5-397b-a17b
+MiniMax: MiniMax M2.5 (free),كتابة (Text),N/A,https://openrouter.ai/minimax/minimax-m2.5:free
+MiniMax: MiniMax M2.5,كتابة (Text),N/A,https://openrouter.ai/minimax/minimax-m2.5
+Z.ai: GLM 5,كتابة (Text),N/A,https://openrouter.ai/z-ai/glm-5
+Qwen: Qwen3 Max Thinking,كتابة (Text),N/A,https://openrouter.ai/qwen/qwen3-max-thinking
+Anthropic: Claude Opus 4.6,كتابة (Text),N/A,https://openrouter.ai/anthropic/claude-opus-4.6
+Qwen: Qwen3 Coder Next,كتابة (Text),N/A,https://openrouter.ai/qwen/qwen3-coder-next
+Sourceful: Riverflow V2 Pro,صور (Image),N/A,https://openrouter.ai/sourceful/riverflow-v2-pro
+Sourceful: Riverflow V2 Fast,صور (Image),N/A,https://openrouter.ai/sourceful/riverflow-v2-fast
+StepFun: Step 3.5 Flash,كتابة (Text),N/A,https://openrouter.ai/stepfun/step-3.5-flash
+Arcee AI: Trinity Large Preview (free),كتابة (Text),N/A,https://openrouter.ai/arcee-ai/trinity-large-preview:free
+MoonshotAI: Kimi K2.5,كتابة (Text),N/A,https://openrouter.ai/moonshotai/kimi-k2.5
+Upstage: Solar Pro 3,كتابة (Text),N/A,https://openrouter.ai/upstage/solar-pro-3
+MiniMax: MiniMax M2-her,كتابة (Text),N/A,https://openrouter.ai/minimax/minimax-m2-her
+Writer: Palmyra X5,كتابة (Text),N/A,https://openrouter.ai/writer/palmyra-x5
+LiquidAI: LFM2.5-1.2B-Thinking (free),كتابة (Text),N/A,https://openrouter.ai/liquid/lfm-2.5-1.2b-thinking:free
+LiquidAI: LFM2.5-1.2B-Instruct (free),كتابة (Text),N/A,https://openrouter.ai/liquid/lfm-2.5-1.2b-instruct:free
+OpenAI: GPT Audio,كتابة (Text),N/A,https://openrouter.ai/openai/gpt-audio
+OpenAI: GPT Audio Mini,كتابة (Text),N/A,https://openrouter.ai/openai/gpt-audio-mini
+Z.ai: GLM 4.7 Flash,كتابة (Text),N/A,https://openrouter.ai/z-ai/glm-4.7-flash
+Black Forest Labs: FLUX.2 Klein 4B,صور (Image),N/A,https://openrouter.ai/black-forest-labs/flux.2-klein-4b
+OpenAI: GPT-5.2-Codex,كتابة (Text),N/A,https://openrouter.ai/openai/gpt-5.2-codex
+AllenAI: Olmo 3.1 32B Instruct,كتابة (Text),N/A,https://openrouter.ai/allenai/olmo-3.1-32b-instruct
+ByteDance Seed: Seedream 4.5,صور (Image),N/A,https://openrouter.ai/bytedance-seed/seedream-4.5
+ByteDance Seed: Seed 1.6 Flash,كتابة (Text),N/A,https://openrouter.ai/bytedance-seed/seed-1.6-flash
+ByteDance Seed: Seed 1.6,كتابة (Text),N/A,https://openrouter.ai/bytedance-seed/seed-1.6
+MiniMax: MiniMax M2.1,كتابة (Text),N/A,https://openrouter.ai/minimax/minimax-m2.1
+Z.ai: GLM 4.7,كتابة (Text),N/A,https://openrouter.ai/z-ai/glm-4.7
+Google: Gemini 3 Flash Preview,كتابة (Text),N/A,https://openrouter.ai/google/gemini-3-flash-preview
+Mistral: Mistral Small Creative,كتابة (Text),N/A,https://openrouter.ai/mistralai/mistral-small-creative
+Black Forest Labs: FLUX.2 Max,صور (Image),N/A,https://openrouter.ai/black-forest-labs/flux.2-max
+Xiaomi: MiMo-V2-Flash,كتابة (Text),N/A,https://openrouter.ai/xiaomi/mimo-v2-flash
+NVIDIA: Nemotron 3 Nano 30B A3B (free),كتابة (Text),N/A,https://openrouter.ai/nvidia/nemotron-3-nano-30b-a3b:free
+NVIDIA: Nemotron 3 Nano 30B A3B,كتابة (Text),N/A,https://openrouter.ai/nvidia/nemotron-3-nano-30b-a3b
+OpenAI: GPT-5.2 Chat,كتابة (Text),N/A,https://openrouter.ai/openai/gpt-5.2-chat
+OpenAI: GPT-5.2 Pro,كتابة (Text),N/A,https://openrouter.ai/openai/gpt-5.2-pro
+OpenAI: GPT-5.2,كتابة (Text),N/A,https://openrouter.ai/openai/gpt-5.2
+Mistral: Devstral 2 2512,كتابة (Text),N/A,https://openrouter.ai/mistralai/devstral-2512
+Sourceful: Riverflow V2 Max Preview,صور (Image),N/A,https://openrouter.ai/sourceful/riverflow-v2-max-preview
+Sourceful: Riverflow V2 Standard Preview,صور (Image),N/A,https://openrouter.ai/sourceful/riverflow-v2-standard-preview
+Sourceful: Riverflow V2 Fast Preview,صور (Image),N/A,https://openrouter.ai/sourceful/riverflow-v2-fast-preview
+Relace: Relace Search,كتابة (Text),N/A,https://openrouter.ai/relace/relace-search
+Z.ai: GLM 4.6V,كتابة (Text),N/A,https://openrouter.ai/z-ai/glm-4.6v
+Nex AGI: DeepSeek V3.1 Nex N1,كتابة (Text),N/A,https://openrouter.ai/nex-agi/deepseek-v3.1-nex-n1
+EssentialAI: Rnj 1 Instruct,كتابة (Text),N/A,https://openrouter.ai/essentialai/rnj-1-instruct
+OpenAI: GPT-5.1-Codex-Max,كتابة (Text),N/A,https://openrouter.ai/openai/gpt-5.1-codex-max
+Amazon: Nova 2 Lite,كتابة (Text),N/A,https://openrouter.ai/amazon/nova-2-lite-v1
+Mistral: Ministral 3 14B 2512,كتابة (Text),N/A,https://openrouter.ai/mistralai/ministral-14b-2512
+Mistral: Ministral 3 8B 2512,كتابة (Text),N/A,https://openrouter.ai/mistralai/ministral-8b-2512
+Mistral: Ministral 3 3B 2512,كتابة (Text),N/A,https://openrouter.ai/mistralai/ministral-3b-2512
+Mistral: Mistral Large 3 2512,كتابة (Text),N/A,https://openrouter.ai/mistralai/mistral-large-2512
+Arcee AI: Trinity Mini,كتابة (Text),N/A,https://openrouter.ai/arcee-ai/trinity-mini
+DeepSeek: DeepSeek V3.2 Speciale,كتابة (Text),N/A,https://openrouter.ai/deepseek/deepseek-v3.2-speciale
+DeepSeek: DeepSeek V3.2,كتابة (Text),N/A,https://openrouter.ai/deepseek/deepseek-v3.2
+Prime Intellect: INTELLECT-3,كتابة (Text),N/A,https://openrouter.ai/prime-intellect/intellect-3
+Black Forest Labs: FLUX.2 Flex,صور (Image),N/A,https://openrouter.ai/black-forest-labs/flux.2-flex
+Black Forest Labs: FLUX.2 Pro,صور (Image),N/A,https://openrouter.ai/black-forest-labs/flux.2-pro
+Anthropic: Claude Opus 4.5,كتابة (Text),N/A,https://openrouter.ai/anthropic/claude-opus-4.5
+AllenAI: Olmo 3 32B Think,كتابة (Text),N/A,https://openrouter.ai/allenai/olmo-3-32b-think
+Google: Nano Banana Pro (Gemini 3 Pro Image Preview),صور (Image),N/A,https://openrouter.ai/google/gemini-3-pro-image-preview
+xAI: Grok 4.1 Fast,كتابة (Text),N/A,https://openrouter.ai/x-ai/grok-4.1-fast
+Thenlper: GTE-Base,إحداثيات (Embeddings),N/A,https://openrouter.ai/thenlper/gte-base
+Thenlper: GTE-Large,إحداثيات (Embeddings),N/A,https://openrouter.ai/thenlper/gte-large
+Intfloat: E5-Large-v2,إحداثيات (Embeddings),N/A,https://openrouter.ai/intfloat/e5-large-v2
+Intfloat: E5-Base-v2,إحداثيات (Embeddings),N/A,https://openrouter.ai/intfloat/e5-base-v2
+Intfloat: Multilingual-E5-Large,إحداثيات (Embeddings),N/A,https://openrouter.ai/intfloat/multilingual-e5-large
+Sentence Transformers: paraphrase-MiniLM-L6-v2,إحداثيات (Embeddings),N/A,https://openrouter.ai/sentence-transformers/paraphrase-minilm-l6-v2
+Sentence Transformers: all-MiniLM-L12-v2,إحداثيات (Embeddings),N/A,https://openrouter.ai/sentence-transformers/all-minilm-l12-v2
+BAAI: bge-base-en-v1.5,إحداثيات (Embeddings),N/A,https://openrouter.ai/baai/bge-base-en-v1.5
+Sentence Transformers: multi-qa-mpnet-base-dot-v1,إحداثيات (Embeddings),N/A,https://openrouter.ai/sentence-transformers/multi-qa-mpnet-base-dot-v1
+BAAI: bge-large-en-v1.5,إحداثيات (Embeddings),N/A,https://openrouter.ai/baai/bge-large-en-v1.5
+BAAI: bge-m3,إحداثيات (Embeddings),N/A,https://openrouter.ai/baai/bge-m3
+Sentence Transformers: all-mpnet-base-v2,إحداثيات (Embeddings),N/A,https://openrouter.ai/sentence-transformers/all-mpnet-base-v2
+Sentence Transformers: all-MiniLM-L6-v2,إحداثيات (Embeddings),N/A,https://openrouter.ai/sentence-transformers/all-minilm-l6-v2
+Deep Cogito: Cogito v2.1 671B,كتابة (Text),N/A,https://openrouter.ai/deepcogito/cogito-v2.1-671b
+OpenAI: GPT-5.1,كتابة (Text),N/A,https://openrouter.ai/openai/gpt-5.1
+OpenAI: GPT-5.1 Chat,كتابة (Text),N/A,https://openrouter.ai/openai/gpt-5.1-chat
+OpenAI: GPT-5.1-Codex,كتابة (Text),N/A,https://openrouter.ai/openai/gpt-5.1-codex
+OpenAI: GPT-5.1-Codex-Mini,كتابة (Text),N/A,https://openrouter.ai/openai/gpt-5.1-codex-mini
+MoonshotAI: Kimi K2 Thinking,كتابة (Text),N/A,https://openrouter.ai/moonshotai/kimi-k2-thinking
+Amazon: Nova Premier 1.0,كتابة (Text),N/A,https://openrouter.ai/amazon/nova-premier-v1
+Mistral: Mistral Embed 2312,إحداثيات (Embeddings),N/A,https://openrouter.ai/mistralai/mistral-embed-2312
+Google: Gemini Embedding 001,إحداثيات (Embeddings),N/A,https://openrouter.ai/google/gemini-embedding-001
+OpenAI: Text Embedding Ada 002,إحداثيات (Embeddings),N/A,https://openrouter.ai/openai/text-embedding-ada-002
+Mistral: Codestral Embed 2505,إحداثيات (Embeddings),N/A,https://openrouter.ai/mistralai/codestral-embed-2505
+OpenAI: Text Embedding 3 Large,إحداثيات (Embeddings),N/A,https://openrouter.ai/openai/text-embedding-3-large
+OpenAI: Text Embedding 3 Small,إحداثيات (Embeddings),N/A,https://openrouter.ai/openai/text-embedding-3-small
+Perplexity: Sonar Pro Search,كتابة (Text),N/A,https://openrouter.ai/perplexity/sonar-pro-search
+Mistral: Voxtral Small 24B 2507,كتابة (Text),N/A,https://openrouter.ai/mistralai/voxtral-small-24b-2507
+OpenAI: gpt-oss-safeguard-20b,كتابة (Text),N/A,https://openrouter.ai/openai/gpt-oss-safeguard-20b
+Qwen: Qwen3 Embedding 8B,إحداثيات (Embeddings),N/A,https://openrouter.ai/qwen/qwen3-embedding-8b
+NVIDIA: Nemotron Nano 12B 2 VL (free),كتابة (Text),N/A,https://openrouter.ai/nvidia/nemotron-nano-12b-v2-vl:free
+NVIDIA: Nemotron Nano 12B 2 VL,كتابة (Text),N/A,https://openrouter.ai/nvidia/nemotron-nano-12b-v2-vl
+Qwen: Qwen3 Embedding 4B,إحداثيات (Embeddings),N/A,https://openrouter.ai/qwen/qwen3-embedding-4b
+MiniMax: MiniMax M2,كتابة (Text),N/A,https://openrouter.ai/minimax/minimax-m2
+Qwen: Qwen3 VL 32B Instruct,كتابة (Text),N/A,https://openrouter.ai/qwen/qwen3-vl-32b-instruct
+IBM: Granite 4.0 Micro,كتابة (Text),N/A,https://openrouter.ai/ibm-granite/granite-4.0-h-micro
+OpenAI: GPT-5 Image Mini,صور (Image),N/A,https://openrouter.ai/openai/gpt-5-image-mini
+Anthropic: Claude Haiku 4.5,كتابة (Text),N/A,https://openrouter.ai/anthropic/claude-haiku-4.5
+Qwen: Qwen3 VL 8B Thinking,كتابة (Text),N/A,https://openrouter.ai/qwen/qwen3-vl-8b-thinking
+Qwen: Qwen3 VL 8B Instruct,كتابة (Text),N/A,https://openrouter.ai/qwen/qwen3-vl-8b-instruct
+OpenAI: GPT-5 Image,صور (Image),N/A,https://openrouter.ai/openai/gpt-5-image
+OpenAI: o3 Deep Research,كتابة (Text),N/A,https://openrouter.ai/openai/o3-deep-research
+OpenAI: o4 Mini Deep Research,كتابة (Text),N/A,https://openrouter.ai/openai/o4-mini-deep-research
+NVIDIA: Llama 3.3 Nemotron Super 49B V1.5,كتابة (Text),N/A,https://openrouter.ai/nvidia/llama-3.3-nemotron-super-49b-v1.5
+Baidu: ERNIE 4.5 21B A3B Thinking,كتابة (Text),N/A,https://openrouter.ai/baidu/ernie-4.5-21b-a3b-thinking
+Google: Nano Banana (Gemini 2.5 Flash Image),صور (Image),N/A,https://openrouter.ai/google/gemini-2.5-flash-image
+Qwen: Qwen3 VL 30B A3B Thinking,كتابة (Text),N/A,https://openrouter.ai/qwen/qwen3-vl-30b-a3b-thinking
+Qwen: Qwen3 VL 30B A3B Instruct,كتابة (Text),N/A,https://openrouter.ai/qwen/qwen3-vl-30b-a3b-instruct
+OpenAI: GPT-5 Pro,كتابة (Text),N/A,https://openrouter.ai/openai/gpt-5-pro
+Z.ai: GLM 4.6,كتابة (Text),N/A,https://openrouter.ai/z-ai/glm-4.6
+Anthropic: Claude Sonnet 4.5,كتابة (Text),N/A,https://openrouter.ai/anthropic/claude-sonnet-4.5
+DeepSeek: DeepSeek V3.2 Exp,كتابة (Text),N/A,https://openrouter.ai/deepseek/deepseek-v3.2-exp
+TheDrummer: Cydonia 24B V4.1,كتابة (Text),N/A,https://openrouter.ai/thedrummer/cydonia-24b-v4.1
+Relace: Relace Apply 3,كتابة (Text),N/A,https://openrouter.ai/relace/relace-apply-3
+Google: Gemini 2.5 Flash Lite Preview 09-2025,كتابة (Text),N/A,https://openrouter.ai/google/gemini-2.5-flash-lite-preview-09-2025
+Qwen: Qwen3 VL 235B A22B Thinking,كتابة (Text),N/A,https://openrouter.ai/qwen/qwen3-vl-235b-a22b-thinking
+Qwen: Qwen3 VL 235B A22B Instruct,كتابة (Text),N/A,https://openrouter.ai/qwen/qwen3-vl-235b-a22b-instruct
+Qwen: Qwen3 Max,كتابة (Text),N/A,https://openrouter.ai/qwen/qwen3-max
+Qwen: Qwen3 Coder Plus,كتابة (Text),N/A,https://openrouter.ai/qwen/qwen3-coder-plus
+OpenAI: GPT-5 Codex,كتابة (Text),N/A,https://openrouter.ai/openai/gpt-5-codex
+DeepSeek: DeepSeek V3.1 Terminus,كتابة (Text),N/A,https://openrouter.ai/deepseek/deepseek-v3.1-terminus
+xAI: Grok 4 Fast,كتابة (Text),N/A,https://openrouter.ai/x-ai/grok-4-fast
+Tongyi DeepResearch 30B A3B,كتابة (Text),N/A,https://openrouter.ai/alibaba/tongyi-deepresearch-30b-a3b
+Qwen: Qwen3 Coder Flash,كتابة (Text),N/A,https://openrouter.ai/qwen/qwen3-coder-flash
+Qwen: Qwen3 Next 80B A3B Thinking,كتابة (Text),N/A,https://openrouter.ai/qwen/qwen3-next-80b-a3b-thinking
+Qwen: Qwen3 Next 80B A3B Instruct (free),كتابة (Text),N/A,https://openrouter.ai/qwen/qwen3-next-80b-a3b-instruct:free
+Qwen: Qwen3 Next 80B A3B Instruct,كتابة (Text),N/A,https://openrouter.ai/qwen/qwen3-next-80b-a3b-instruct
+Qwen: Qwen Plus 0728 (thinking),كتابة (Text),N/A,https://openrouter.ai/qwen/qwen-plus-2025-07-28:thinking
+Qwen: Qwen Plus 0728,كتابة (Text),N/A,https://openrouter.ai/qwen/qwen-plus-2025-07-28
+NVIDIA: Nemotron Nano 9B V2 (free),كتابة (Text),N/A,https://openrouter.ai/nvidia/nemotron-nano-9b-v2:free
+NVIDIA: Nemotron Nano 9B V2,كتابة (Text),N/A,https://openrouter.ai/nvidia/nemotron-nano-9b-v2
+MoonshotAI: Kimi K2 0905,كتابة (Text),N/A,https://openrouter.ai/moonshotai/kimi-k2-0905
+Qwen: Qwen3 30B A3B Thinking 2507,كتابة (Text),N/A,https://openrouter.ai/qwen/qwen3-30b-a3b-thinking-2507
+xAI: Grok Code Fast 1,كتابة (Text),N/A,https://openrouter.ai/x-ai/grok-code-fast-1
+Nous: Hermes 4 70B,كتابة (Text),N/A,https://openrouter.ai/nousresearch/hermes-4-70b
+Nous: Hermes 4 405B,كتابة (Text),N/A,https://openrouter.ai/nousresearch/hermes-4-405b
+DeepSeek: DeepSeek V3.1,كتابة (Text),N/A,https://openrouter.ai/deepseek/deepseek-chat-v3.1
+OpenAI: GPT-4o Audio,كتابة (Text),N/A,https://openrouter.ai/openai/gpt-4o-audio-preview
+Mistral: Mistral Medium 3.1,كتابة (Text),N/A,https://openrouter.ai/mistralai/mistral-medium-3.1
+Baidu: ERNIE 4.5 21B A3B,كتابة (Text),N/A,https://openrouter.ai/baidu/ernie-4.5-21b-a3b
+Baidu: ERNIE 4.5 VL 28B A3B,كتابة (Text),N/A,https://openrouter.ai/baidu/ernie-4.5-vl-28b-a3b
+Z.ai: GLM 4.5V,كتابة (Text),N/A,https://openrouter.ai/z-ai/glm-4.5v
+AI21: Jamba Large 1.7,كتابة (Text),N/A,https://openrouter.ai/ai21/jamba-large-1.7
+OpenAI: GPT-5 Chat,كتابة (Text),N/A,https://openrouter.ai/openai/gpt-5-chat
+OpenAI: GPT-5,كتابة (Text),N/A,https://openrouter.ai/openai/gpt-5
+OpenAI: GPT-5 Mini,كتابة (Text),N/A,https://openrouter.ai/openai/gpt-5-mini
+OpenAI: GPT-5 Nano,كتابة (Text),N/A,https://openrouter.ai/openai/gpt-5-nano
+OpenAI: gpt-oss-120b (free),كتابة (Text),N/A,https://openrouter.ai/openai/gpt-oss-120b:free
+OpenAI: gpt-oss-120b,كتابة (Text),N/A,https://openrouter.ai/openai/gpt-oss-120b
+OpenAI: gpt-oss-20b (free),كتابة (Text),N/A,https://openrouter.ai/openai/gpt-oss-20b:free
+OpenAI: gpt-oss-20b,كتابة (Text),N/A,https://openrouter.ai/openai/gpt-oss-20b
+Anthropic: Claude Opus 4.1,كتابة (Text),N/A,https://openrouter.ai/anthropic/claude-opus-4.1
+Mistral: Codestral 2508,كتابة (Text),N/A,https://openrouter.ai/mistralai/codestral-2508
+Qwen: Qwen3 Coder 30B A3B Instruct,كتابة (Text),N/A,https://openrouter.ai/qwen/qwen3-coder-30b-a3b-instruct
+Qwen: Qwen3 30B A3B Instruct 2507,كتابة (Text),N/A,https://openrouter.ai/qwen/qwen3-30b-a3b-instruct-2507
+Z.ai: GLM 4.5,كتابة (Text),N/A,https://openrouter.ai/z-ai/glm-4.5
+Z.ai: GLM 4.5 Air (free),كتابة (Text),N/A,https://openrouter.ai/z-ai/glm-4.5-air:free
+Z.ai: GLM 4.5 Air,كتابة (Text),N/A,https://openrouter.ai/z-ai/glm-4.5-air
+Qwen: Qwen3 235B A22B Thinking 2507,كتابة (Text),N/A,https://openrouter.ai/qwen/qwen3-235b-a22b-thinking-2507
+Z.ai: GLM 4 32B,كتابة (Text),N/A,https://openrouter.ai/z-ai/glm-4-32b
+Qwen: Qwen3 Coder 480B A35B (free),كتابة (Text),N/A,https://openrouter.ai/qwen/qwen3-coder:free
+Qwen: Qwen3 Coder 480B A35B,كتابة (Text),N/A,https://openrouter.ai/qwen/qwen3-coder
+ByteDance: UI-TARS 7B,كتابة (Text),N/A,https://openrouter.ai/bytedance/ui-tars-1.5-7b
+Google: Gemini 2.5 Flash Lite,كتابة (Text),N/A,https://openrouter.ai/google/gemini-2.5-flash-lite
+Qwen: Qwen3 235B A22B Instruct 2507,كتابة (Text),N/A,https://openrouter.ai/qwen/qwen3-235b-a22b-2507
+Switchpoint Router,كتابة (Text),N/A,https://openrouter.ai/switchpoint/router
+MoonshotAI: Kimi K2 0711,كتابة (Text),N/A,https://openrouter.ai/moonshotai/kimi-k2
+Mistral: Devstral Medium,كتابة (Text),N/A,https://openrouter.ai/mistralai/devstral-medium
+Mistral: Devstral Small 1.1,كتابة (Text),N/A,https://openrouter.ai/mistralai/devstral-small
+Venice: Uncensored (free),كتابة (Text),N/A,https://openrouter.ai/cognitivecomputations/dolphin-mistral-24b-venice-edition:free
+xAI: Grok 4,كتابة (Text),N/A,https://openrouter.ai/x-ai/grok-4
+Google: Gemma 3n 2B (free),كتابة (Text),N/A,https://openrouter.ai/google/gemma-3n-e2b-it:free
+Tencent: Hunyuan A13B Instruct,كتابة (Text),N/A,https://openrouter.ai/tencent/hunyuan-a13b-instruct
+TNG: DeepSeek R1T2 Chimera,كتابة (Text),N/A,https://openrouter.ai/tngtech/deepseek-r1t2-chimera
+Morph: Morph V3 Large,كتابة (Text),N/A,https://openrouter.ai/morph/morph-v3-large
+Morph: Morph V3 Fast,كتابة (Text),N/A,https://openrouter.ai/morph/morph-v3-fast
+Baidu: ERNIE 4.5 VL 424B A47B,كتابة (Text),N/A,https://openrouter.ai/baidu/ernie-4.5-vl-424b-a47b
+Baidu: ERNIE 4.5 300B A47B,كتابة (Text),N/A,https://openrouter.ai/baidu/ernie-4.5-300b-a47b
+Mistral: Mistral Small 3.2 24B,كتابة (Text),N/A,https://openrouter.ai/mistralai/mistral-small-3.2-24b-instruct
+MiniMax: MiniMax M1,كتابة (Text),N/A,https://openrouter.ai/minimax/minimax-m1
+Google: Gemini 2.5 Flash,كتابة (Text),N/A,https://openrouter.ai/google/gemini-2.5-flash
+Google: Gemini 2.5 Pro,كتابة (Text),N/A,https://openrouter.ai/google/gemini-2.5-pro
+OpenAI: o3 Pro,كتابة (Text),N/A,https://openrouter.ai/openai/o3-pro
+xAI: Grok 3 Mini,كتابة (Text),N/A,https://openrouter.ai/x-ai/grok-3-mini
+xAI: Grok 3,كتابة (Text),N/A,https://openrouter.ai/x-ai/grok-3
+Google: Gemini 2.5 Pro Preview 06-05,كتابة (Text),N/A,https://openrouter.ai/google/gemini-2.5-pro-preview
+DeepSeek: R1 0528,كتابة (Text),N/A,https://openrouter.ai/deepseek/deepseek-r1-0528
+Anthropic: Claude Opus 4,كتابة (Text),N/A,https://openrouter.ai/anthropic/claude-opus-4
+Anthropic: Claude Sonnet 4,كتابة (Text),N/A,https://openrouter.ai/anthropic/claude-sonnet-4
+Google: Gemma 3n 4B (free),كتابة (Text),N/A,https://openrouter.ai/google/gemma-3n-e4b-it:free
+Google: Gemma 3n 4B,كتابة (Text),N/A,https://openrouter.ai/google/gemma-3n-e4b-it
+Mistral: Mistral Medium 3,كتابة (Text),N/A,https://openrouter.ai/mistralai/mistral-medium-3
+Google: Gemini 2.5 Pro Preview 05-06,كتابة (Text),N/A,https://openrouter.ai/google/gemini-2.5-pro-preview-05-06
+Arcee AI: Spotlight,كتابة (Text),N/A,https://openrouter.ai/arcee-ai/spotlight
+Arcee AI: Maestro Reasoning,كتابة (Text),N/A,https://openrouter.ai/arcee-ai/maestro-reasoning
+Arcee AI: Virtuoso Large,كتابة (Text),N/A,https://openrouter.ai/arcee-ai/virtuoso-large
+Arcee AI: Coder Large,كتابة (Text),N/A,https://openrouter.ai/arcee-ai/coder-large
+Meta: Llama Guard 4 12B,كتابة (Text),N/A,https://openrouter.ai/meta-llama/llama-guard-4-12b
+Qwen: Qwen3 30B A3B,كتابة (Text),N/A,https://openrouter.ai/qwen/qwen3-30b-a3b
+Qwen: Qwen3 8B,كتابة (Text),N/A,https://openrouter.ai/qwen/qwen3-8b
+Qwen: Qwen3 14B,كتابة (Text),N/A,https://openrouter.ai/qwen/qwen3-14b
+Qwen: Qwen3 32B,كتابة (Text),N/A,https://openrouter.ai/qwen/qwen3-32b
+Qwen: Qwen3 235B A22B,كتابة (Text),N/A,https://openrouter.ai/qwen/qwen3-235b-a22b
+OpenAI: o4 Mini High,كتابة (Text),N/A,https://openrouter.ai/openai/o4-mini-high
+OpenAI: o3,كتابة (Text),N/A,https://openrouter.ai/openai/o3
+OpenAI: o4 Mini,كتابة (Text),N/A,https://openrouter.ai/openai/o4-mini
+OpenAI: GPT-4.1,كتابة (Text),N/A,https://openrouter.ai/openai/gpt-4.1
+OpenAI: GPT-4.1 Mini,كتابة (Text),N/A,https://openrouter.ai/openai/gpt-4.1-mini
+OpenAI: GPT-4.1 Nano,كتابة (Text),N/A,https://openrouter.ai/openai/gpt-4.1-nano
+AlfredPros: CodeLLaMa 7B Instruct Solidity,كتابة (Text),N/A,https://openrouter.ai/alfredpros/codellama-7b-instruct-solidity
+xAI: Grok 3 Mini Beta,كتابة (Text),N/A,https://openrouter.ai/x-ai/grok-3-mini-beta
+xAI: Grok 3 Beta,كتابة (Text),N/A,https://openrouter.ai/x-ai/grok-3-beta
+Meta: Llama 4 Maverick,كتابة (Text),N/A,https://openrouter.ai/meta-llama/llama-4-maverick
+Meta: Llama 4 Scout,كتابة (Text),N/A,https://openrouter.ai/meta-llama/llama-4-scout
+DeepSeek: DeepSeek V3 0324,كتابة (Text),N/A,https://openrouter.ai/deepseek/deepseek-chat-v3-0324
+OpenAI: o1-pro,كتابة (Text),N/A,https://openrouter.ai/openai/o1-pro
+Mistral: Mistral Small 3.1 24B,كتابة (Text),N/A,https://openrouter.ai/mistralai/mistral-small-3.1-24b-instruct
+Google: Gemma 3 4B (free),كتابة (Text),N/A,https://openrouter.ai/google/gemma-3-4b-it:free
+Google: Gemma 3 4B,كتابة (Text),N/A,https://openrouter.ai/google/gemma-3-4b-it
+Google: Gemma 3 12B (free),كتابة (Text),N/A,https://openrouter.ai/google/gemma-3-12b-it:free
+Google: Gemma 3 12B,كتابة (Text),N/A,https://openrouter.ai/google/gemma-3-12b-it
+Cohere: Command A,كتابة (Text),N/A,https://openrouter.ai/cohere/command-a
+OpenAI: GPT-4o-mini Search Preview,كتابة (Text),N/A,https://openrouter.ai/openai/gpt-4o-mini-search-preview
+OpenAI: GPT-4o Search Preview,كتابة (Text),N/A,https://openrouter.ai/openai/gpt-4o-search-preview
+Reka Flash 3,كتابة (Text),N/A,https://openrouter.ai/rekaai/reka-flash-3
+Google: Gemma 3 27B (free),كتابة (Text),N/A,https://openrouter.ai/google/gemma-3-27b-it:free
+Google: Gemma 3 27B,كتابة (Text),N/A,https://openrouter.ai/google/gemma-3-27b-it
+TheDrummer: Skyfall 36B V2,كتابة (Text),N/A,https://openrouter.ai/thedrummer/skyfall-36b-v2
+Perplexity: Sonar Reasoning Pro,كتابة (Text),N/A,https://openrouter.ai/perplexity/sonar-reasoning-pro
+Perplexity: Sonar Pro,كتابة (Text),N/A,https://openrouter.ai/perplexity/sonar-pro
+Perplexity: Sonar Deep Research,كتابة (Text),N/A,https://openrouter.ai/perplexity/sonar-deep-research
+Qwen: QwQ 32B,كتابة (Text),N/A,https://openrouter.ai/qwen/qwq-32b
+Google: Gemini 2.0 Flash Lite,كتابة (Text),N/A,https://openrouter.ai/google/gemini-2.0-flash-lite-001
+Anthropic: Claude 3.7 Sonnet,كتابة (Text),N/A,https://openrouter.ai/anthropic/claude-3.7-sonnet
+Anthropic: Claude 3.7 Sonnet (thinking),كتابة (Text),N/A,https://openrouter.ai/anthropic/claude-3.7-sonnet:thinking
+Mistral: Saba,كتابة (Text),N/A,https://openrouter.ai/mistralai/mistral-saba
+Llama Guard 3 8B,كتابة (Text),N/A,https://openrouter.ai/meta-llama/llama-guard-3-8b
+OpenAI: o3 Mini High,كتابة (Text),N/A,https://openrouter.ai/openai/o3-mini-high
+Google: Gemini 2.0 Flash,كتابة (Text),N/A,https://openrouter.ai/google/gemini-2.0-flash-001
+Qwen: Qwen VL Plus,كتابة (Text),N/A,https://openrouter.ai/qwen/qwen-vl-plus
+AionLabs: Aion-1.0,كتابة (Text),N/A,https://openrouter.ai/aion-labs/aion-1.0
+AionLabs: Aion-1.0-Mini,كتابة (Text),N/A,https://openrouter.ai/aion-labs/aion-1.0-mini
+AionLabs: Aion-RP 1.0 (8B),كتابة (Text),N/A,https://openrouter.ai/aion-labs/aion-rp-llama-3.1-8b
+Qwen: Qwen VL Max,كتابة (Text),N/A,https://openrouter.ai/qwen/qwen-vl-max
+Qwen: Qwen-Turbo,كتابة (Text),N/A,https://openrouter.ai/qwen/qwen-turbo
+Qwen: Qwen2.5 VL 72B Instruct,كتابة (Text),N/A,https://openrouter.ai/qwen/qwen2.5-vl-72b-instruct
+Qwen: Qwen-Plus,كتابة (Text),N/A,https://openrouter.ai/qwen/qwen-plus
+Qwen: Qwen-Max,كتابة (Text),N/A,https://openrouter.ai/qwen/qwen-max
+OpenAI: o3 Mini,كتابة (Text),N/A,https://openrouter.ai/openai/o3-mini
+Mistral: Mistral Small 3,كتابة (Text),N/A,https://openrouter.ai/mistralai/mistral-small-24b-instruct-2501
+DeepSeek: R1 Distill Qwen 32B,كتابة (Text),N/A,https://openrouter.ai/deepseek/deepseek-r1-distill-qwen-32b
+Perplexity: Sonar,كتابة (Text),N/A,https://openrouter.ai/perplexity/sonar
+DeepSeek: R1 Distill Llama 70B,كتابة (Text),N/A,https://openrouter.ai/deepseek/deepseek-r1-distill-llama-70b
+DeepSeek: R1,كتابة (Text),N/A,https://openrouter.ai/deepseek/deepseek-r1
+MiniMax: MiniMax-01,كتابة (Text),N/A,https://openrouter.ai/minimax/minimax-01
+Microsoft: Phi 4,كتابة (Text),N/A,https://openrouter.ai/microsoft/phi-4
+Sao10K: Llama 3.1 70B Hanami x1,كتابة (Text),N/A,https://openrouter.ai/sao10k/l3.1-70b-hanami-x1
+DeepSeek: DeepSeek V3,كتابة (Text),N/A,https://openrouter.ai/deepseek/deepseek-chat
+Sao10K: Llama 3.3 Euryale 70B,كتابة (Text),N/A,https://openrouter.ai/sao10k/l3.3-euryale-70b
+OpenAI: o1,كتابة (Text),N/A,https://openrouter.ai/openai/o1
+Cohere: Command R7B (12-2024),كتابة (Text),N/A,https://openrouter.ai/cohere/command-r7b-12-2024
+Meta: Llama 3.3 70B Instruct (free),كتابة (Text),N/A,https://openrouter.ai/meta-llama/llama-3.3-70b-instruct:free
+Meta: Llama 3.3 70B Instruct,كتابة (Text),N/A,https://openrouter.ai/meta-llama/llama-3.3-70b-instruct
+Amazon: Nova Lite 1.0,كتابة (Text),N/A,https://openrouter.ai/amazon/nova-lite-v1
+Amazon: Nova Micro 1.0,كتابة (Text),N/A,https://openrouter.ai/amazon/nova-micro-v1
+Amazon: Nova Pro 1.0,كتابة (Text),N/A,https://openrouter.ai/amazon/nova-pro-v1
+OpenAI: GPT-4o (2024-11-20),كتابة (Text),N/A,https://openrouter.ai/openai/gpt-4o-2024-11-20
+Mistral Large 2411,كتابة (Text),N/A,https://openrouter.ai/mistralai/mistral-large-2411
+Mistral Large 2407,كتابة (Text),N/A,https://openrouter.ai/mistralai/mistral-large-2407
+Mistral: Pixtral Large 2411,كتابة (Text),N/A,https://openrouter.ai/mistralai/pixtral-large-2411
+Qwen2.5 Coder 32B Instruct,كتابة (Text),N/A,https://openrouter.ai/qwen/qwen-2.5-coder-32b-instruct
+TheDrummer: UnslopNemo 12B,كتابة (Text),N/A,https://openrouter.ai/thedrummer/unslopnemo-12b
+Anthropic: Claude 3.5 Haiku,كتابة (Text),N/A,https://openrouter.ai/anthropic/claude-3.5-haiku
+Magnum v4 72B,كتابة (Text),N/A,https://openrouter.ai/anthracite-org/magnum-v4-72b
+Qwen: Qwen2.5 7B Instruct,كتابة (Text),N/A,https://openrouter.ai/qwen/qwen-2.5-7b-instruct
+NVIDIA: Llama 3.1 Nemotron 70B Instruct,كتابة (Text),N/A,https://openrouter.ai/nvidia/llama-3.1-nemotron-70b-instruct
+Inflection: Inflection 3 Pi,كتابة (Text),N/A,https://openrouter.ai/inflection/inflection-3-pi
+Inflection: Inflection 3 Productivity,كتابة (Text),N/A,https://openrouter.ai/inflection/inflection-3-productivity
+TheDrummer: Rocinante 12B,كتابة (Text),N/A,https://openrouter.ai/thedrummer/rocinante-12b
+Meta: Llama 3.2 1B Instruct,كتابة (Text),N/A,https://openrouter.ai/meta-llama/llama-3.2-1b-instruct
+Meta: Llama 3.2 11B Vision Instruct,كتابة (Text),N/A,https://openrouter.ai/meta-llama/llama-3.2-11b-vision-instruct
+Meta: Llama 3.2 3B Instruct (free),كتابة (Text),N/A,https://openrouter.ai/meta-llama/llama-3.2-3b-instruct:free
+Meta: Llama 3.2 3B Instruct,كتابة (Text),N/A,https://openrouter.ai/meta-llama/llama-3.2-3b-instruct
+Qwen2.5 72B Instruct,كتابة (Text),N/A,https://openrouter.ai/qwen/qwen-2.5-72b-instruct
+Cohere: Command R+ (08-2024),كتابة (Text),N/A,https://openrouter.ai/cohere/command-r-plus-08-2024
+Cohere: Command R (08-2024),كتابة (Text),N/A,https://openrouter.ai/cohere/command-r-08-2024
+Sao10K: Llama 3.1 Euryale 70B v2.2,كتابة (Text),N/A,https://openrouter.ai/sao10k/l3.1-euryale-70b
+Nous: Hermes 3 70B Instruct,كتابة (Text),N/A,https://openrouter.ai/nousresearch/hermes-3-llama-3.1-70b
+Nous: Hermes 3 405B Instruct (free),كتابة (Text),N/A,https://openrouter.ai/nousresearch/hermes-3-llama-3.1-405b:free
+Nous: Hermes 3 405B Instruct,كتابة (Text),N/A,https://openrouter.ai/nousresearch/hermes-3-llama-3.1-405b
+Sao10K: Llama 3 8B Lunaris,كتابة (Text),N/A,https://openrouter.ai/sao10k/l3-lunaris-8b
+OpenAI: GPT-4o (2024-08-06),كتابة (Text),N/A,https://openrouter.ai/openai/gpt-4o-2024-08-06
+Meta: Llama 3.1 8B Instruct,كتابة (Text),N/A,https://openrouter.ai/meta-llama/llama-3.1-8b-instruct
+Meta: Llama 3.1 70B Instruct,كتابة (Text),N/A,https://openrouter.ai/meta-llama/llama-3.1-70b-instruct
+Mistral: Mistral Nemo,كتابة (Text),N/A,https://openrouter.ai/mistralai/mistral-nemo
+OpenAI: GPT-4o-mini,كتابة (Text),N/A,https://openrouter.ai/openai/gpt-4o-mini
+OpenAI: GPT-4o-mini (2024-07-18),كتابة (Text),N/A,https://openrouter.ai/openai/gpt-4o-mini-2024-07-18
+Google: Gemma 2 27B,كتابة (Text),N/A,https://openrouter.ai/google/gemma-2-27b-it
+Sao10k: Llama 3 Euryale 70B v2.1,كتابة (Text),N/A,https://openrouter.ai/sao10k/l3-euryale-70b
+NousResearch: Hermes 2 Pro - Llama-3 8B,كتابة (Text),N/A,https://openrouter.ai/nousresearch/hermes-2-pro-llama-3-8b
+OpenAI: GPT-4o,كتابة (Text),N/A,https://openrouter.ai/openai/gpt-4o
+OpenAI: GPT-4o (2024-05-13),كتابة (Text),N/A,https://openrouter.ai/openai/gpt-4o-2024-05-13
+Meta: Llama 3 8B Instruct,كتابة (Text),N/A,https://openrouter.ai/meta-llama/llama-3-8b-instruct
+Meta: Llama 3 70B Instruct,كتابة (Text),N/A,https://openrouter.ai/meta-llama/llama-3-70b-instruct
+Mistral: Mixtral 8x22B Instruct,كتابة (Text),N/A,https://openrouter.ai/mistralai/mixtral-8x22b-instruct
+WizardLM-2 8x22B,كتابة (Text),N/A,https://openrouter.ai/microsoft/wizardlm-2-8x22b
+OpenAI: GPT-4 Turbo,كتابة (Text),N/A,https://openrouter.ai/openai/gpt-4-turbo
+Anthropic: Claude 3 Haiku,كتابة (Text),N/A,https://openrouter.ai/anthropic/claude-3-haiku
+Mistral Large,كتابة (Text),N/A,https://openrouter.ai/mistralai/mistral-large
+OpenAI: GPT-3.5 Turbo (older v0613),كتابة (Text),N/A,https://openrouter.ai/openai/gpt-3.5-turbo-0613
+OpenAI: GPT-4 Turbo Preview,كتابة (Text),N/A,https://openrouter.ai/openai/gpt-4-turbo-preview
+Mistral: Mixtral 8x7B Instruct,كتابة (Text),N/A,https://openrouter.ai/mistralai/mixtral-8x7b-instruct
+Goliath 120B,كتابة (Text),N/A,https://openrouter.ai/alpindale/goliath-120b
+OpenAI: GPT-4 Turbo (older v1106),كتابة (Text),N/A,https://openrouter.ai/openai/gpt-4-1106-preview
+OpenAI: GPT-3.5 Turbo Instruct,كتابة (Text),N/A,https://openrouter.ai/openai/gpt-3.5-turbo-instruct
+Mistral: Mistral 7B Instruct v0.1,كتابة (Text),N/A,https://openrouter.ai/mistralai/mistral-7b-instruct-v0.1
+OpenAI: GPT-3.5 Turbo 16k,كتابة (Text),N/A,https://openrouter.ai/openai/gpt-3.5-turbo-16k
+Mancer: Weaver (alpha),كتابة (Text),N/A,https://openrouter.ai/mancer/weaver
+ReMM SLERP 13B,كتابة (Text),N/A,https://openrouter.ai/undi95/remm-slerp-l2-13b
+MythoMax 13B,كتابة (Text),N/A,https://openrouter.ai/gryphe/mythomax-l2-13b
+OpenAI: GPT-4,كتابة (Text),N/A,https://openrouter.ai/openai/gpt-4
+OpenAI: GPT-4 (older v0314),كتابة (Text),N/A,https://openrouter.ai/openai/gpt-4-0314
+OpenAI: GPT-3.5 Turbo,كتابة (Text),N/A,https://openrouter.ai/openai/gpt-3.5-turbo
+Qwen: Qwen3.6 Plus Preview,كتابة (Text),N/A,https://openrouter.ai/qwen/qwen3.6-plus-preview
+xAI: Grok 4.20 Multi-Agent Beta,كتابة (Text),N/A,https://openrouter.ai/x-ai/grok-4.20-multi-agent-beta
+xAI: Grok 4.20 Beta,كتابة (Text),N/A,https://openrouter.ai/x-ai/grok-4.20-beta
+Hunter Alpha,كتابة (Text),N/A,https://openrouter.ai/openrouter/hunter-alpha
+Healer Alpha,كتابة (Text),N/A,https://openrouter.ai/openrouter/healer-alpha
+Aurora Alpha,كتابة (Text),N/A,https://openrouter.ai/openrouter/aurora-alpha
+Pony Alpha,كتابة (Text),N/A,https://openrouter.ai/openrouter/pony-alpha
+Free Models Router,كتابة (Text),N/A,https://openrouter.ai/openrouter/free
+AllenAI: Molmo2 8B,كتابة (Text),N/A,https://openrouter.ai/allenai/molmo-2-8b
+AllenAI: Olmo 3.1 32B Think,كتابة (Text),N/A,https://openrouter.ai/allenai/olmo-3.1-32b-think
+Body Builder (beta),كتابة (Text),N/A,https://openrouter.ai/openrouter/bodybuilder
+TNG: R1T Chimera,كتابة (Text),N/A,https://openrouter.ai/tngtech/tng-r1t-chimera
+Bert-Nebulon Alpha,كتابة (Text),N/A,https://openrouter.ai/openrouter/bert-nebulon-alpha
+AllenAI: Olmo 3 7B Instruct,كتابة (Text),N/A,https://openrouter.ai/allenai/olmo-3-7b-instruct
+AllenAI: Olmo 3 7B Think,كتابة (Text),N/A,https://openrouter.ai/allenai/olmo-3-7b-think
+Google: Gemini 3 Pro Preview,كتابة (Text),N/A,https://openrouter.ai/google/gemini-3-pro-preview
+Sherlock Dash Alpha,كتابة (Text),N/A,https://openrouter.ai/openrouter/sherlock-dash-alpha
+Sherlock Think Alpha,كتابة (Text),N/A,https://openrouter.ai/openrouter/sherlock-think-alpha
+Kwaipilot: KAT-Coder-Pro V1,كتابة (Text),N/A,https://openrouter.ai/kwaipilot/kat-coder-pro
+Polaris Alpha,كتابة (Text),N/A,https://openrouter.ai/openrouter/polaris-alpha
+Qwen: Qwen3 Embedding 0.6B,إحداثيات (Embeddings),N/A,https://openrouter.ai/qwen/qwen3-embedding-0.6b
+Andromeda Alpha,كتابة (Text),N/A,https://openrouter.ai/openrouter/andromeda-alpha
+LiquidAI: LFM2-8B-A1B,كتابة (Text),N/A,https://openrouter.ai/liquid/lfm2-8b-a1b
+LiquidAI: LFM2-2.6B,كتابة (Text),N/A,https://openrouter.ai/liquid/lfm-2.2-6b
+Deep Cogito: Cogito V2 Preview Llama 405B,كتابة (Text),N/A,https://openrouter.ai/deepcogito/cogito-v2-preview-llama-405b
+Google: Gemini 2.5 Flash Preview 09-2025,كتابة (Text),N/A,https://openrouter.ai/google/gemini-2.5-flash-preview-09-2025
+Arcee AI: AFM 4.5B,كتابة (Text),N/A,https://openrouter.ai/arcee-ai/afm-4.5b
+OpenGVLab: InternVL3 78B,كتابة (Text),N/A,https://openrouter.ai/opengvlab/internvl3-78b
+Meituan: LongCat Flash Chat,كتابة (Text),N/A,https://openrouter.ai/meituan/longcat-flash-chat
+Sonoma Dusk Alpha,كتابة (Text),N/A,https://openrouter.ai/openrouter/sonoma-dusk-alpha
+Sonoma Sky Alpha,كتابة (Text),N/A,https://openrouter.ai/openrouter/sonoma-sky-alpha
+ByteDance: Seed OSS 36B Instruct,كتابة (Text),N/A,https://openrouter.ai/bytedance/seed-oss-36b-instruct
+Deep Cogito: Cogito V2 Preview Llama 70B,كتابة (Text),N/A,https://openrouter.ai/deepcogito/cogito-v2-preview-llama-70b
+Cogito V2 Preview Llama 109B,كتابة (Text),N/A,https://openrouter.ai/deepcogito/cogito-v2-preview-llama-109b-moe
+Deep Cogito: Cogito V2 Preview Deepseek 671B,كتابة (Text),N/A,https://openrouter.ai/deepcogito/cogito-v2-preview-deepseek-671b
+StepFun: Step3,كتابة (Text),N/A,https://openrouter.ai/stepfun-ai/step3
+Google: Gemini 2.5 Flash Image Preview (Nano Banana),صور (Image),N/A,https://openrouter.ai/google/gemini-2.5-flash-image-preview
+DeepSeek: DeepSeek V3.1 Base,كتابة (Text),N/A,https://openrouter.ai/deepseek/deepseek-v3.1-base
+AI21: Jamba Mini 1.7,كتابة (Text),N/A,https://openrouter.ai/ai21/jamba-mini-1.7
+Horizon Beta,كتابة (Text),N/A,https://openrouter.ai/openrouter/horizon-beta
+Horizon Alpha,كتابة (Text),N/A,https://openrouter.ai/openrouter/horizon-alpha
+THUDM: GLM 4.1V 9B Thinking,كتابة (Text),N/A,https://openrouter.ai/thudm/glm-4.1v-9b-thinking
+Cypher Alpha,كتابة (Text),N/A,https://openrouter.ai/openrouter/cypher-alpha
+Inception: Mercury,كتابة (Text),N/A,https://openrouter.ai/inception/mercury
+Morph: Fast Apply,كتابة (Text),N/A,https://openrouter.ai/morph/morph-v2
+MoonshotAI: Kimi Dev 72B,كتابة (Text),N/A,https://openrouter.ai/moonshotai/kimi-dev-72b
+Mistral: Magistral Small 2506,كتابة (Text),N/A,https://openrouter.ai/mistralai/magistral-small-2506
+Mistral: Magistral Medium 2506,كتابة (Text),N/A,https://openrouter.ai/mistralai/magistral-medium-2506
+SentientAGI: Dobby Mini Plus Llama 3.1 8B,كتابة (Text),N/A,https://openrouter.ai/sentientagi/dobby-mini-unhinged-plus-llama-3.1-8b
+DeepSeek: R1 Distill Qwen 7B,كتابة (Text),N/A,https://openrouter.ai/deepseek/deepseek-r1-distill-qwen-7b
+DeepSeek: DeepSeek R1 0528 Qwen3 8B,كتابة (Text),N/A,https://openrouter.ai/deepseek/deepseek-r1-0528-qwen3-8b
+Google: Gemma 1 2B,كتابة (Text),N/A,https://openrouter.ai/google/gemma-2b-it
+Sarvam AI: Sarvam-M,كتابة (Text),N/A,https://openrouter.ai/sarvamai/sarvam-m
+TheDrummer: Valkyrie 49B V1,كتابة (Text),N/A,https://openrouter.ai/thedrummer/valkyrie-49b-v1
+Mistral: Devstral Small 2505,كتابة (Text),N/A,https://openrouter.ai/mistralai/devstral-small-2505
+OpenAI: Codex Mini,كتابة (Text),N/A,https://openrouter.ai/openai/codex-mini
+Meta: Llama 3.3 8B Instruct,كتابة (Text),N/A,https://openrouter.ai/meta-llama/llama-3.3-8b-instruct
+Nous: DeepHermes 3 Mistral 24B Preview,كتابة (Text),N/A,https://openrouter.ai/nousresearch/deephermes-3-mistral-24b-preview
+Arcee AI: Caller Large,كتابة (Text),N/A,https://openrouter.ai/arcee-ai/caller-large
+Arcee AI: Virtuoso Medium V2,كتابة (Text),N/A,https://openrouter.ai/arcee-ai/virtuoso-medium-v2
+Arcee AI: Arcee Blitz,كتابة (Text),N/A,https://openrouter.ai/arcee-ai/arcee-blitz
+Microsoft: Phi 4 Reasoning Plus,كتابة (Text),N/A,https://openrouter.ai/microsoft/phi-4-reasoning-plus
+Microsoft: Phi 4 Reasoning,كتابة (Text),N/A,https://openrouter.ai/microsoft/phi-4-reasoning
+Qwen: Qwen3 0.6B,كتابة (Text),N/A,https://openrouter.ai/qwen/qwen3-0.6b-04-28
+Inception: Mercury Coder,كتابة (Text),N/A,https://openrouter.ai/inception/mercury-coder
+Qwen: Qwen3 1.7B,كتابة (Text),N/A,https://openrouter.ai/qwen/qwen3-1.7b
+Qwen: Qwen3 4B,كتابة (Text),N/A,https://openrouter.ai/qwen/qwen3-4b
+OpenGVLab: InternVL3 14B,كتابة (Text),N/A,https://openrouter.ai/opengvlab/internvl3-14b
+OpenGVLab: InternVL3 2B,كتابة (Text),N/A,https://openrouter.ai/opengvlab/internvl3-2b
+DeepSeek: DeepSeek Prover V2,كتابة (Text),N/A,https://openrouter.ai/deepseek/deepseek-prover-v2
+TNG: DeepSeek R1T Chimera,كتابة (Text),N/A,https://openrouter.ai/tngtech/deepseek-r1t-chimera
+THUDM: GLM Z1 Rumination 32B,كتابة (Text),N/A,https://openrouter.ai/thudm/glm-z1-rumination-32b
+THUDM: GLM Z1 9B,كتابة (Text),N/A,https://openrouter.ai/thudm/glm-z1-9b
+THUDM: GLM 4 9B,كتابة (Text),N/A,https://openrouter.ai/thudm/glm-4-9b
+Microsoft: MAI DS R1,كتابة (Text),N/A,https://openrouter.ai/microsoft/mai-ds-r1
+THUDM: GLM Z1 32B,كتابة (Text),N/A,https://openrouter.ai/thudm/glm-z1-32b
+THUDM: GLM 4 32B,كتابة (Text),N/A,https://openrouter.ai/thudm/glm-4-32b
+Qwen: Qwen2.5 Coder 7B Instruct,كتابة (Text),N/A,https://openrouter.ai/qwen/qwen2.5-coder-7b-instruct
+ArliAI: QwQ 32B RpR v1,كتابة (Text),N/A,https://openrouter.ai/arliai/qwq-32b-arliai-rpr-v1
+Agentica: Deepcoder 14B Preview,كتابة (Text),N/A,https://openrouter.ai/agentica-org/deepcoder-14b-preview
+MoonshotAI: Kimi VL A3B Thinking,كتابة (Text),N/A,https://openrouter.ai/moonshotai/kimi-vl-a3b-thinking
+Optimus Alpha,كتابة (Text),N/A,https://openrouter.ai/openrouter/optimus-alpha
+NVIDIA: Llama 3.1 Nemotron Nano 8B v1,كتابة (Text),N/A,https://openrouter.ai/nvidia/llama-3.1-nemotron-nano-8b-v1
+NVIDIA: Llama 3.3 Nemotron Super 49B v1,كتابة (Text),N/A,https://openrouter.ai/nvidia/llama-3.3-nemotron-super-49b-v1
+NVIDIA: Llama 3.1 Nemotron Ultra 253B v1,كتابة (Text),N/A,https://openrouter.ai/nvidia/llama-3.1-nemotron-ultra-253b-v1
+Swallow: Llama 3.1 Swallow 8B Instruct V0.3,كتابة (Text),N/A,https://openrouter.ai/tokyotech-llm/llama-3.1-swallow-8b-instruct-v0.3
+Quasar Alpha,كتابة (Text),N/A,https://openrouter.ai/openrouter/quasar-alpha
+OpenHands LM 32B V0.1,كتابة (Text),N/A,https://openrouter.ai/all-hands/openhands-lm-32b-v0.1
+DeepSeek: DeepSeek V3 Base,كتابة (Text),N/A,https://openrouter.ai/deepseek/deepseek-v3-base
+Typhoon2 8B Instruct,كتابة (Text),N/A,https://openrouter.ai/scb10x/llama3.1-typhoon2-8b-instruct
+Typhoon2 70B Instruct,كتابة (Text),N/A,https://openrouter.ai/scb10x/llama3.1-typhoon2-70b-instruct
+Bytedance: UI-TARS 72B,كتابة (Text),N/A,https://openrouter.ai/bytedance-research/ui-tars-72b
+Qwen: Qwen2.5 VL 3B Instruct,كتابة (Text),N/A,https://openrouter.ai/qwen/qwen2.5-vl-3b-instruct
+Google: Gemini 2.5 Pro Experimental,كتابة (Text),N/A,https://openrouter.ai/google/gemini-2.5-pro-exp-03-25
+Qwen: Qwen2.5 VL 32B Instruct,كتابة (Text),N/A,https://openrouter.ai/qwen/qwen2.5-vl-32b-instruct
+Qrwkv 72B,كتابة (Text),N/A,https://openrouter.ai/featherless/qwerky-72b
+OlympicCoder 32B,كتابة (Text),N/A,https://openrouter.ai/open-r1/olympiccoder-32b
+SteelSkull: L3.3 Electra R1 70B,كتابة (Text),N/A,https://openrouter.ai/steelskull/l3.3-electra-r1-70b
+AllenAI: Olmo 2 32B Instruct,كتابة (Text),N/A,https://openrouter.ai/allenai/olmo-2-0325-32b-instruct
+Google: Gemma 3 1B,كتابة (Text),N/A,https://openrouter.ai/google/gemma-3-1b-it
+AI21: Jamba 1.6 Large,كتابة (Text),N/A,https://openrouter.ai/ai21/jamba-1.6-large
+AI21: Jamba Mini 1.6,كتابة (Text),N/A,https://openrouter.ai/ai21/jamba-1.6-mini
+LatitudeGames: Wayfarer Large 70B Llama 3.3,كتابة (Text),N/A,https://openrouter.ai/latitudegames/wayfarer-large-70b-llama-3.3
+Microsoft: Phi 4 Multimodal Instruct,كتابة (Text),N/A,https://openrouter.ai/microsoft/phi-4-multimodal-instruct
+DeepSeek: DeepSeek R1 Zero,كتابة (Text),N/A,https://openrouter.ai/deepseek/deepseek-r1-zero
+Qwen: Qwen2.5 32B Instruct,كتابة (Text),N/A,https://openrouter.ai/qwen/qwen2.5-32b-instruct
+MoonshotAI: Moonlight 16B A3B Instruct,كتابة (Text),N/A,https://openrouter.ai/moonshotai/moonlight-16b-a3b-instruct
+Nous: DeepHermes 3 Llama 3 8B Preview,كتابة (Text),N/A,https://openrouter.ai/nousresearch/deephermes-3-llama-3-8b-preview
+OpenAI: GPT-4.5 (Preview),كتابة (Text),N/A,https://openrouter.ai/openai/gpt-4.5-preview
+Perplexity: R1 1776,كتابة (Text),N/A,https://openrouter.ai/perplexity/r1-1776
+Dolphin3.0 R1 Mistral 24B,كتابة (Text),N/A,https://openrouter.ai/cognitivecomputations/dolphin3.0-r1-mistral-24b
+Dolphin3.0 Mistral 24B,كتابة (Text),N/A,https://openrouter.ai/cognitivecomputations/dolphin3.0-mistral-24b
+Llama 3.1 Tulu 3 405B,كتابة (Text),N/A,https://openrouter.ai/allenai/llama-3.1-tulu-3-405b
+DeepSeek: R1 Distill Llama 8B,كتابة (Text),N/A,https://openrouter.ai/deepseek/deepseek-r1-distill-llama-8b
+DeepSeek: R1 Distill Qwen 1.5B,كتابة (Text),N/A,https://openrouter.ai/deepseek/deepseek-r1-distill-qwen-1.5b
+DeepSeek: R1 Distill Qwen 14B,كتابة (Text),N/A,https://openrouter.ai/deepseek/deepseek-r1-distill-qwen-14b
+Perplexity: Sonar Reasoning,كتابة (Text),N/A,https://openrouter.ai/perplexity/sonar-reasoning
+Liquid: LFM 7B,كتابة (Text),N/A,https://openrouter.ai/liquid/lfm-7b
+Liquid: LFM 3B,كتابة (Text),N/A,https://openrouter.ai/liquid/lfm-3b
+Mistral: Codestral 2501,كتابة (Text),N/A,https://openrouter.ai/mistralai/codestral-2501
+Inflatebot: Mag Mell R1 12B,كتابة (Text),N/A,https://openrouter.ai/inflatebot/mn-mag-mell-r1
+EVA Llama 3.33 70B,كتابة (Text),N/A,https://openrouter.ai/eva-unit-01/eva-llama-3.33-70b
+xAI: Grok 2 Vision 1212,كتابة (Text),N/A,https://openrouter.ai/x-ai/grok-2-vision-1212
+xAI: Grok 2 1212,كتابة (Text),N/A,https://openrouter.ai/x-ai/grok-2-1212
+Google: Gemini 2.0 Flash Experimental,كتابة (Text),N/A,https://openrouter.ai/google/gemini-2.0-flash-exp
+Qwen: QwQ 32B Preview,كتابة (Text),N/A,https://openrouter.ai/qwen/qwq-32b-preview
+Google: Gemini Experimental 1121,كتابة (Text),N/A,https://openrouter.ai/google/gemini-exp-1121
+EVA Qwen2.5 72B,كتابة (Text),N/A,https://openrouter.ai/eva-unit-01/eva-qwen-2.5-72b
+xAI: Grok Vision Beta,كتابة (Text),N/A,https://openrouter.ai/x-ai/grok-vision-beta
+Google: Gemini Experimental 1114,كتابة (Text),N/A,https://openrouter.ai/google/gemini-exp-1114
+Infermatic: Mistral Nemo Inferor 12B,كتابة (Text),N/A,https://openrouter.ai/infermatic/mn-inferor-12b
+SorcererLM 8x22B,كتابة (Text),N/A,https://openrouter.ai/raifle/sorcererlm-8x22b
+EVA Qwen2.5 32B,كتابة (Text),N/A,https://openrouter.ai/eva-unit-01/eva-qwen-2.5-32b
+Anthropic: Claude 3.5 Haiku (2024-10-22),كتابة (Text),N/A,https://openrouter.ai/anthropic/claude-3.5-haiku-20241022
+Anthropic: Claude 3.5 Sonnet,كتابة (Text),N/A,https://openrouter.ai/anthropic/claude-3.5-sonnet
+NeverSleep: Lumimaid v0.2 70B,كتابة (Text),N/A,https://openrouter.ai/neversleep/llama-3.1-lumimaid-70b
+xAI: Grok Beta,كتابة (Text),N/A,https://openrouter.ai/x-ai/grok-beta
+Mistral: Ministral 8B,كتابة (Text),N/A,https://openrouter.ai/mistralai/ministral-8b
+Mistral: Ministral 3B,كتابة (Text),N/A,https://openrouter.ai/mistralai/ministral-3b
+xAI: Grok 2,كتابة (Text),N/A,https://openrouter.ai/x-ai/grok-2
+xAI: Grok 2 mini,كتابة (Text),N/A,https://openrouter.ai/x-ai/grok-2-mini
+Google: Gemini 1.5 Flash 8B,كتابة (Text),N/A,https://openrouter.ai/google/gemini-flash-1.5-8b
+EVA Qwen2.5 14B,كتابة (Text),N/A,https://openrouter.ai/eva-unit-01/eva-qwen-2.5-14b
+Liquid: LFM 40B MoE,كتابة (Text),N/A,https://openrouter.ai/liquid/lfm-40b
+Magnum v2 72B,كتابة (Text),N/A,https://openrouter.ai/anthracite-org/magnum-v2-72b
+Meta: Llama 3.2 90B Vision Instruct,كتابة (Text),N/A,https://openrouter.ai/meta-llama/llama-3.2-90b-vision-instruct
+NeverSleep: Lumimaid v0.2 8B,كتابة (Text),N/A,https://openrouter.ai/neversleep/llama-3.1-lumimaid-8b
+OpenAI: o1-mini,كتابة (Text),N/A,https://openrouter.ai/openai/o1-mini
+OpenAI: o1-mini (2024-09-12),كتابة (Text),N/A,https://openrouter.ai/openai/o1-mini-2024-09-12
+OpenAI: o1-preview,كتابة (Text),N/A,https://openrouter.ai/openai/o1-preview
+OpenAI: o1-preview (2024-09-12),كتابة (Text),N/A,https://openrouter.ai/openai/o1-preview-2024-09-12
+Mistral: Pixtral 12B,كتابة (Text),N/A,https://openrouter.ai/mistralai/pixtral-12b
+Reflection 70B,كتابة (Text),N/A,https://openrouter.ai/mattshumer/reflection-70b
+Qwen: Qwen2.5-VL 7B Instruct,كتابة (Text),N/A,https://openrouter.ai/qwen/qwen-2.5-vl-7b-instruct
+Google: Gemini 1.5 Flash Experimental,كتابة (Text),N/A,https://openrouter.ai/google/gemini-flash-1.5-exp
+Lynn: Llama 3 Soliloquy 7B v3 32K,كتابة (Text),N/A,https://openrouter.ai/lynn/soliloquy-v3
+Yi 1.5 34B Chat,كتابة (Text),N/A,https://openrouter.ai/01-ai/yi-1.5-34b-chat
+AI21: Jamba 1.5 Mini,كتابة (Text),N/A,https://openrouter.ai/ai21/jamba-1-5-mini
+AI21: Jamba 1.5 Large,كتابة (Text),N/A,https://openrouter.ai/ai21/jamba-1-5-large
+Microsoft: Phi-3.5 Mini 128K Instruct,كتابة (Text),N/A,https://openrouter.ai/microsoft/phi-3.5-mini-128k-instruct
+OpenAI: ChatGPT-4o,كتابة (Text),N/A,https://openrouter.ai/openai/chatgpt-4o-latest
+Aetherwiing: Starcannon 12B,كتابة (Text),N/A,https://openrouter.ai/aetherwiing/mn-starcannon-12b
+Mistral Nemo 12B Celeste,كتابة (Text),N/A,https://openrouter.ai/nothingiisreal/mn-celeste-12b
+Meta: Llama 3.1 405B (base),كتابة (Text),N/A,https://openrouter.ai/meta-llama/llama-3.1-405b
+01.AI: Yi Large FC,كتابة (Text),N/A,https://openrouter.ai/01-ai/yi-large-fc
+01.AI: Yi Large Turbo,كتابة (Text),N/A,https://openrouter.ai/01-ai/yi-large-turbo
+01.AI: Yi Vision,كتابة (Text),N/A,https://openrouter.ai/01-ai/yi-vision
+Perplexity: Llama 3.1 Sonar 8B Online,كتابة (Text),N/A,https://openrouter.ai/perplexity/llama-3.1-sonar-small-128k-online
+Perplexity: Llama 3.1 Sonar 70B Online,كتابة (Text),N/A,https://openrouter.ai/perplexity/llama-3.1-sonar-large-128k-online
+Google: Gemini 1.5 Pro Experimental,كتابة (Text),N/A,https://openrouter.ai/google/gemini-pro-1.5-exp
+Meta: Llama 3.1 405B Instruct,كتابة (Text),N/A,https://openrouter.ai/meta-llama/llama-3.1-405b-instruct
+Dolphin Llama 3 70B 🐬,كتابة (Text),N/A,https://openrouter.ai/cognitivecomputations/dolphin-llama-3-70b
+Mistral: Codestral Mamba,كتابة (Text),N/A,https://openrouter.ai/mistralai/codestral-mamba
+Qwen 2 7B Instruct,كتابة (Text),N/A,https://openrouter.ai/qwen/qwen-2-7b-instruct
+Nous: Hermes 2 Theta 8B,كتابة (Text),N/A,https://openrouter.ai/nousresearch/hermes-2-theta-llama-3-8b
+Magnum 72B,كتابة (Text),N/A,https://openrouter.ai/alpindale/magnum-72b
+Google: Gemma 2 9B,كتابة (Text),N/A,https://openrouter.ai/google/gemma-2-9b-it
+Sao10K: Llama 3 Stheno 8B v3.3 32K,كتابة (Text),N/A,https://openrouter.ai/sao10k/l3-stheno-8b
+AI21: Jamba Instruct,كتابة (Text),N/A,https://openrouter.ai/ai21/jamba-instruct
+01.AI: Yi Large,كتابة (Text),N/A,https://openrouter.ai/01-ai/yi-large
+NVIDIA: Nemotron-4 340B Instruct,كتابة (Text),N/A,https://openrouter.ai/nvidia/nemotron-4-340b-instruct
+Anthropic: Claude 3.5 Sonnet (2024-06-20),كتابة (Text),N/A,https://openrouter.ai/anthropic/claude-3.5-sonnet-20240620
+Microsoft: Phi-3 Medium 4K Instruct,كتابة (Text),N/A,https://openrouter.ai/microsoft/phi-3-medium-4k-instruct
+StarCoder2 15B Instruct,كتابة (Text),N/A,https://openrouter.ai/bigcode/starcoder2-15b-instruct
+Dolphin 2.9.2 Mixtral 8x22B 🐬,كتابة (Text),N/A,https://openrouter.ai/cognitivecomputations/dolphin-mixtral-8x22b
+Qwen 2 72B Instruct,كتابة (Text),N/A,https://openrouter.ai/qwen/qwen-2-72b-instruct
+OpenChat 3.6 8B,كتابة (Text),N/A,https://openrouter.ai/openchat/openchat-8b
+Mistral: Mistral 7B Instruct v0.3,كتابة (Text),N/A,https://openrouter.ai/mistralai/mistral-7b-instruct-v0.3
+Mistral: Mistral 7B Instruct,كتابة (Text),N/A,https://openrouter.ai/mistralai/mistral-7b-instruct
+Microsoft: Phi-3 Mini 128K Instruct,كتابة (Text),N/A,https://openrouter.ai/microsoft/phi-3-mini-128k-instruct
+Microsoft: Phi-3 Medium 128K Instruct,كتابة (Text),N/A,https://openrouter.ai/microsoft/phi-3-medium-128k-instruct
+NeverSleep: Llama 3 Lumimaid 70B,كتابة (Text),N/A,https://openrouter.ai/neversleep/llama-3-lumimaid-70b
+DeepSeek V2.5,كتابة (Text),N/A,https://openrouter.ai/deepseek/deepseek-chat-v2.5
+Perplexity: Llama3 Sonar 70B Online,كتابة (Text),N/A,https://openrouter.ai/perplexity/llama-3-sonar-large-32k-online
+Google: Gemini 1.5 Flash,كتابة (Text),N/A,https://openrouter.ai/google/gemini-flash-1.5
+Perplexity: Llama3 Sonar 70B,كتابة (Text),N/A,https://openrouter.ai/perplexity/llama-3-sonar-large-32k-chat
+Perplexity: Llama3 Sonar 8B Online,كتابة (Text),N/A,https://openrouter.ai/perplexity/llama-3-sonar-small-32k-online
+Perplexity: Llama3 Sonar 8B,كتابة (Text),N/A,https://openrouter.ai/perplexity/llama-3-sonar-small-32k-chat
+Meta: Llama 3 8B (Base),كتابة (Text),N/A,https://openrouter.ai/meta-llama/llama-3-8b
+Meta: Llama 3 70B (Base),كتابة (Text),N/A,https://openrouter.ai/meta-llama/llama-3-70b
+Meta: LlamaGuard 2 8B,كتابة (Text),N/A,https://openrouter.ai/meta-llama/llama-guard-2-8b
+LLaVA v1.6 34B,كتابة (Text),N/A,https://openrouter.ai/liuhaotian/llava-yi-34b
+OLMo 7B Instruct,كتابة (Text),N/A,https://openrouter.ai/allenai/olmo-7b-instruct
+Qwen 1.5 7B Chat,كتابة (Text),N/A,https://openrouter.ai/qwen/qwen-7b-chat
+Qwen 1.5 14B Chat,كتابة (Text),N/A,https://openrouter.ai/qwen/qwen-14b-chat
+Qwen 1.5 110B Chat,كتابة (Text),N/A,https://openrouter.ai/qwen/qwen-110b-chat
+Qwen 1.5 32B Chat,كتابة (Text),N/A,https://openrouter.ai/qwen/qwen-32b-chat
+Qwen 1.5 4B Chat,كتابة (Text),N/A,https://openrouter.ai/qwen/qwen-4b-chat
+Qwen 1.5 72B Chat,كتابة (Text),N/A,https://openrouter.ai/qwen/qwen-72b-chat
+NeverSleep: Llama 3 Lumimaid 8B,كتابة (Text),N/A,https://openrouter.ai/neversleep/llama-3-lumimaid-8b
+Snowflake: Arctic Instruct,كتابة (Text),N/A,https://openrouter.ai/snowflake/snowflake-arctic-instruct
+Fireworks: FireLLaVA 13B,كتابة (Text),N/A,https://openrouter.ai/fireworks/firellava-13b
+Lynn: Llama 3 Soliloquy 8B v2,كتابة (Text),N/A,https://openrouter.ai/lynn/soliloquy-l3
+Fimbulvetr 11B v2,كتابة (Text),N/A,https://openrouter.ai/sao10k/fimbulvetr-11b-v2
+WizardLM-2 7B,كتابة (Text),N/A,https://openrouter.ai/microsoft/wizardlm-2-7b
+Zephyr 141B-A35B,كتابة (Text),N/A,https://openrouter.ai/huggingfaceh4/zephyr-orpo-141b-a35b
+Mistral: Mixtral 8x22B (base),كتابة (Text),N/A,https://openrouter.ai/mistralai/mixtral-8x22b
+Google: Gemini 1.5 Pro,كتابة (Text),N/A,https://openrouter.ai/google/gemini-pro-1.5
+Cohere: Command R+,كتابة (Text),N/A,https://openrouter.ai/cohere/command-r-plus
+Cohere: Command R+ (04-2024),كتابة (Text),N/A,https://openrouter.ai/cohere/command-r-plus-04-2024
+Databricks: DBRX 132B Instruct,كتابة (Text),N/A,https://openrouter.ai/databricks/dbrx-instruct
+Midnight Rose 70B,كتابة (Text),N/A,https://openrouter.ai/sophosympatheia/midnight-rose-70b
+Cohere: Command,كتابة (Text),N/A,https://openrouter.ai/cohere/command
+Cohere: Command R,كتابة (Text),N/A,https://openrouter.ai/cohere/command-r
+Anthropic: Claude 3 Sonnet,كتابة (Text),N/A,https://openrouter.ai/anthropic/claude-3-sonnet
+Anthropic: Claude 3 Opus,كتابة (Text),N/A,https://openrouter.ai/anthropic/claude-3-opus
+Cohere: Command R (03-2024),كتابة (Text),N/A,https://openrouter.ai/cohere/command-r-03-2024
+Google: Gemma 7B,كتابة (Text),N/A,https://openrouter.ai/google/gemma-7b-it
+Nous: Hermes 2 Mistral 7B DPO,كتابة (Text),N/A,https://openrouter.ai/nousresearch/nous-hermes-2-mistral-7b-dpo
+Meta: CodeLlama 70B Instruct,كتابة (Text),N/A,https://openrouter.ai/meta-llama/codellama-70b-instruct
+RWKV v5: Eagle 7B,كتابة (Text),N/A,https://openrouter.ai/recursal/eagle-7b
+Yi 34B 200K,كتابة (Text),N/A,https://openrouter.ai/01-ai/yi-34b-200k
+Nous: Hermes 2 Mixtral 8x7B DPO,كتابة (Text),N/A,https://openrouter.ai/nousresearch/nous-hermes-2-mixtral-8x7b-dpo
+Nous: Hermes 2 Mixtral 8x7B SFT,كتابة (Text),N/A,https://openrouter.ai/nousresearch/nous-hermes-2-mixtral-8x7b-sft
+Mistral Tiny,كتابة (Text),N/A,https://openrouter.ai/mistralai/mistral-tiny
+Mistral Medium,كتابة (Text),N/A,https://openrouter.ai/mistralai/mistral-medium
+Mistral Small,كتابة (Text),N/A,https://openrouter.ai/mistralai/mistral-small
+Bagel 34B v0.2,كتابة (Text),N/A,https://openrouter.ai/jondurbin/bagel-34b
+Nous: Hermes 2 Yi 34B,كتابة (Text),N/A,https://openrouter.ai/nousresearch/nous-hermes-yi-34b
+Noromaid Mixtral 8x7B Instruct,كتابة (Text),N/A,https://openrouter.ai/neversleep/noromaid-mixtral-8x7b-instruct
+Mistral: Mistral 7B Instruct v0.2,كتابة (Text),N/A,https://openrouter.ai/mistralai/mistral-7b-instruct-v0.2
+Dolphin 2.6 Mixtral 8x7B 🐬,كتابة (Text),N/A,https://openrouter.ai/cognitivecomputations/dolphin-mixtral-8x7b
+RWKV v5 World 3B,كتابة (Text),N/A,https://openrouter.ai/rwkv/rwkv-5-world-3b
+RWKV v5 3B AI Town,كتابة (Text),N/A,https://openrouter.ai/recursal/rwkv-5-3b-ai-town
+StripedHyena Nous 7B,كتابة (Text),N/A,https://openrouter.ai/togethercomputer/stripedhyena-nous-7b
+StripedHyena Hessian 7B (base),كتابة (Text),N/A,https://openrouter.ai/togethercomputer/stripedhyena-hessian-7b
+Psyfighter v2 13B,كتابة (Text),N/A,https://openrouter.ai/koboldai/psyfighter-13b-2
+MythoMist 7B,كتابة (Text),N/A,https://openrouter.ai/gryphe/mythomist-7b
+Yi 34B Chat,كتابة (Text),N/A,https://openrouter.ai/01-ai/yi-34b-chat
+Yi 6B (base),كتابة (Text),N/A,https://openrouter.ai/01-ai/yi-6b
+Nous: Hermes 2 Vision 7B (alpha),كتابة (Text),N/A,https://openrouter.ai/nousresearch/nous-hermes-2-vision-7b
+Yi 34B (base),كتابة (Text),N/A,https://openrouter.ai/01-ai/yi-34b
+Cinematika 7B (alpha),كتابة (Text),N/A,https://openrouter.ai/openrouter/cinematika-7b
+Nous: Capybara 7B,كتابة (Text),N/A,https://openrouter.ai/nousresearch/nous-capybara-7b
+Psyfighter 13B,كتابة (Text),N/A,https://openrouter.ai/jebcarter/psyfighter-13b
+OpenChat 3.5 7B,كتابة (Text),N/A,https://openrouter.ai/openchat/openchat-7b
+Noromaid 20B,كتابة (Text),N/A,https://openrouter.ai/neversleep/noromaid-20b
+Neural Chat 7B v3.1,كتابة (Text),N/A,https://openrouter.ai/intel/neural-chat-7b
+Anthropic: Claude v2,كتابة (Text),N/A,https://openrouter.ai/anthropic/claude-2
+Anthropic: Claude Instant v1.1,كتابة (Text),N/A,https://openrouter.ai/anthropic/claude-instant-1.1
+Anthropic: Claude v2.1,كتابة (Text),N/A,https://openrouter.ai/anthropic/claude-2.1
+OpenHermes 2.5 Mistral 7B,كتابة (Text),N/A,https://openrouter.ai/teknium/openhermes-2.5-mistral-7b
+LLaVA 13B,كتابة (Text),N/A,https://openrouter.ai/liuhaotian/llava-13b
+Nous: Capybara 34B,كتابة (Text),N/A,https://openrouter.ai/nousresearch/nous-capybara-34b
+OpenAI: GPT-4 Vision,كتابة (Text),N/A,https://openrouter.ai/openai/gpt-4-vision-preview
+lzlv 70B,كتابة (Text),N/A,https://openrouter.ai/lizpreciatior/lzlv-70b-fp16-hf
+Toppy M 7B,كتابة (Text),N/A,https://openrouter.ai/undi95/toppy-m-7b
+Auto Router,كتابة (Text),N/A,https://openrouter.ai/openrouter/auto
+OpenAI: GPT-3.5 Turbo 16k (older v1106),كتابة (Text),N/A,https://openrouter.ai/openai/gpt-3.5-turbo-1106
+Google: PaLM 2 Chat 32k,كتابة (Text),N/A,https://openrouter.ai/google/palm-2-chat-bison-32k
+Google: PaLM 2 Code Chat 32k,كتابة (Text),N/A,https://openrouter.ai/google/palm-2-codechat-bison-32k
+OpenHermes 2 Mistral 7B,كتابة (Text),N/A,https://openrouter.ai/teknium/openhermes-2-mistral-7b
+Mistral OpenOrca 7B,كتابة (Text),N/A,https://openrouter.ai/open-orca/mistral-7b-openorca
+Airoboros 70B,كتابة (Text),N/A,https://openrouter.ai/jondurbin/airoboros-l2-70b
+Nous: Hermes 70B,كتابة (Text),N/A,https://openrouter.ai/nousresearch/nous-hermes-llama2-70b
+Xwin 70B,كتابة (Text),N/A,https://openrouter.ai/xwin-lm/xwin-lm-70b
+Synthia 70B,كتابة (Text),N/A,https://openrouter.ai/migtissera/synthia-70b
+Pygmalion: Mythalion 13B,كتابة (Text),N/A,https://openrouter.ai/pygmalionai/mythalion-13b
+OpenAI: GPT-4 32k,كتابة (Text),N/A,https://openrouter.ai/openai/gpt-4-32k
+OpenAI: GPT-4 32k (older v0314),كتابة (Text),N/A,https://openrouter.ai/openai/gpt-4-32k-0314
+Meta: CodeLlama 34B Instruct,كتابة (Text),N/A,https://openrouter.ai/meta-llama/codellama-34b-instruct
+Nous: Hermes 13B,كتابة (Text),N/A,https://openrouter.ai/nousresearch/nous-hermes-llama2-13b
+Phind: CodeLlama 34B v2,كتابة (Text),N/A,https://openrouter.ai/phind/phind-codellama-34b
+Hugging Face: Zephyr 7B,كتابة (Text),N/A,https://openrouter.ai/huggingfaceh4/zephyr-7b-beta
+Anthropic: Claude Instant v1.0,كتابة (Text),N/A,https://openrouter.ai/anthropic/claude-instant-1.0
+Anthropic: Claude Instant v1,كتابة (Text),N/A,https://openrouter.ai/anthropic/claude-instant-1
+Anthropic: Claude v1,كتابة (Text),N/A,https://openrouter.ai/anthropic/claude-1
+Anthropic: Claude v2.0,كتابة (Text),N/A,https://openrouter.ai/anthropic/claude-2.0
+Anthropic: Claude v1.2,كتابة (Text),N/A,https://openrouter.ai/anthropic/claude-1.2
+Google: PaLM 2 Chat,كتابة (Text),N/A,https://openrouter.ai/google/palm-2-chat-bison
+Google: PaLM 2 Code Chat,كتابة (Text),N/A,https://openrouter.ai/google/palm-2-codechat-bison
+Meta: Llama 2 13B Chat,كتابة (Text),N/A,https://openrouter.ai/meta-llama/llama-2-13b-chat
+Meta: Llama 2 70B Chat,كتابة (Text),N/A,https://openrouter.ai/meta-llama/llama-2-70b-chat
+OpenAI: GPT-3.5 Turbo (older v0301),كتابة (Text),N/A,https://openrouter.ai/openai/gpt-3.5-turbo-0301
+OpenAI: GPT-3.5 Turbo 16k,كتابة (Text),N/A,https://openrouter.ai/openai/gpt-3.5-turbo-0125

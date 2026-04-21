@@ -1,124 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { api } from "../api";
 import type { Settings } from "../types";
 
-type ModelPreset = {
-  label: string;
-  value: string;
-  tone: "openai" | "anthropic" | "google" | "meta" | "ollama" | "default";
-};
-
-type OpenRouterPresetCandidate = {
-  label: string;
-  tone: Extract<ModelPreset["tone"], "openai" | "anthropic" | "google" | "meta">;
-  candidates: string[];
-  fallback: RegExp[];
-};
-
-const OPENROUTER_PRESET_CANDIDATES: OpenRouterPresetCandidate[] = [
-  {
-    label: "GPT-4o",
-    tone: "openai",
-    candidates: [
-      "openai/gpt-4o",
-      "openai/gpt-4.1",
-      "openai/gpt-4-turbo",
-      "openai/gpt-4",
-    ],
-    fallback: [/^openai\/gpt-4o/i, /^openai\/gpt-4\./i, /^openai\/gpt-4/i],
-  },
-  {
-    label: "Claude Sonnet",
-    tone: "anthropic",
-    candidates: [
-      "anthropic/claude-3.5-sonnet",
-      "anthropic/claude-3.7-sonnet",
-      "anthropic/claude-3-opus",
-      "anthropic/claude-3-sonnet",
-    ],
-    fallback: [/^anthropic\/.*sonnet/i, /^anthropic\/claude-3/i],
-  },
-  {
-    label: "Gemini",
-    tone: "google",
-    candidates: [
-      "google/gemini-2.0-flash-exp",
-      "google/gemini-2.0-flash",
-      "google/gemini-1.5-pro",
-      "google/gemini-1.5-flash",
-    ],
-    fallback: [/^google\/gemini-2\./i, /^google\/gemini/i],
-  },
-  {
-    label: "Llama",
-    tone: "meta",
-    candidates: [
-      "meta-llama/llama-4-scout-17b-16e-instruct",
-      "meta-llama/llama-4-maverick-17b-128e-instruct",
-      "meta-llama/llama-3.1-70b-instruct",
-      "meta-llama/llama-3.1-405b-instruct",
-    ],
-    fallback: [/^meta-llama\/llama-4/i, /^meta-llama\/llama/i],
-  },
-];
-
-const OPENROUTER_PRESETS_FALLBACK: ModelPreset[] = [
-  { label: "GPT-4o", value: "openai/gpt-4o", tone: "openai" },
-  { label: "Claude Sonnet", value: "anthropic/claude-3.5-sonnet", tone: "anthropic" },
-  { label: "Gemini", value: "google/gemini-2.0-flash-exp", tone: "google" },
-  {
-    label: "Llama",
-    value: "meta-llama/llama-4-scout-17b-16e-instruct",
-    tone: "meta",
-  },
-];
-
-const OLLAMA_PRESETS: ModelPreset[] = [
-  { label: "Qwen Coder", value: "qwen2.5-coder:7b", tone: "ollama" },
-  { label: "DeepSeek Coder", value: "deepseek-coder:6.7b", tone: "ollama" },
-  { label: "Llama 3.1", value: "llama3.1:8b", tone: "ollama" },
-  { label: "Mistral", value: "mistral:7b", tone: "ollama" },
-];
-
-function PresetButtons({
-  value,
-  presets,
-  onPick,
-  defaultLabel,
-  defaultValue,
-}: {
-  value: string;
-  presets: ModelPreset[];
-  onPick: (next: string) => void;
-  defaultLabel?: string;
-  defaultValue?: string;
-}) {
-  return (
-    <div className="preset-row" role="group" aria-label="Model presets">
-      {defaultValue !== undefined && (
-        <button
-          type="button"
-          className={`preset-btn ai-pill tone-default ${value === defaultValue ? "is-active" : ""}`}
-          onClick={() => onPick(defaultValue)}
-          title={defaultValue === "" ? "Use provider default" : defaultValue}
-        >
-          {defaultLabel ?? "Default"}
-        </button>
-      )}
-      {presets.map((p) => (
-        <button
-          key={p.value}
-          type="button"
-          className={`preset-btn ai-pill tone-${p.tone} ${value === p.value ? "is-active" : ""}`}
-          onClick={() => onPick(p.value)}
-          title={p.value}
-        >
-          {p.label}
-        </button>
-      ))}
-    </div>
-  );
-}
+import openRouterCategorizedModelsCsv from "../../../../OpenRouter_Categorized_Models.csv?raw";
 
 /**
  * Heuristic: does the model name look like a ≤3B parameter model?
@@ -203,6 +87,500 @@ type OpenRouterProbeState =
     }
   | { kind: "err"; message: string };
 
+type OpenRouterCsvModel = {
+  name: string;
+  category: string;
+  provider: string;
+  url: string;
+  modelId: string;
+};
+
+type CuratedModel = {
+  label: string;
+  modelId: string;
+  description: string;
+};
+
+type CuratedCategory = {
+  title: string;
+  description: string;
+  models: CuratedModel[];
+};
+
+const OPENROUTER_FREE_CATEGORIES: CuratedCategory[] = [
+  {
+    title: "الفئة الأولى: الموديلات العملاقة (القمة في البرمجة)",
+    description:
+      "هذه الموديلات تمتلك أكبر عدد من المعلمات وتعتبر الأفضل في حل المشكلات البرمجية المعقدة:",
+    models: [
+      {
+        label: "Qwen3 Coder 480B A35B (free)",
+        modelId: "qwen/qwen3-coder:free",
+        description:
+          "الأفضل على الإطلاق في القائمة للكود بناءً على تخصص عائلة Qwen Coder.",
+      },
+      {
+        label: "Hermes 3 405B Instruct (free)",
+        modelId: "nousresearch/hermes-3-llama-3.1-405b:free",
+        description:
+          "مبني على Llama 3 405B، وهو أضخم موديل مفتوح المصدر ويمتلك قدرات استدلال هائلة.",
+      },
+      {
+        label: "Qwen3 Next 80B A3B Instruct (free)",
+        modelId: "qwen/qwen3-next-80b-a3b-instruct:free",
+        description: "موديل جيل قادم من Qwen، يتفوق في الرياضيات والكود.",
+      },
+      {
+        label: "Llama 3.3 70B Instruct (free)",
+        modelId: "meta-llama/llama-3.3-70b-instruct:free",
+        description:
+          "المعيار الذهبي الحالي للموديلات ذات الحجم المتوسط في البرمجة.",
+      },
+    ],
+  },
+  {
+    title: "الفئة الثانية: الموديلات المتقدمة (قوية جداً)",
+    description: "",
+    models: [
+      {
+        label: "GLM 4.5 Air (free)",
+        modelId: "z-ai/glm-4.5-air:free",
+        description: "موديل صيني متطور جداً وينافس GPT-4 في المهام المنطقية.",
+      },
+      {
+        label: "Kimi K2.6",
+        modelId: "moonshotai/kimi-k2.6",
+        description:
+          "موديل قوي جداً في السياقات الطويلة وفهم بنية الأكواد الضخمة.",
+      },
+      {
+        label: "Gemma 4 31B (free)",
+        modelId: "google/gemma-4-31b-it:free",
+        description:
+          "جيل قادم من جوجل، متوقع أن يكون متفوقاً جداً في الكود مقارنة بحجمه.",
+      },
+      {
+        label: "Gemma 4 26B A4B (free)",
+        modelId: "google/gemma-4-26b-a4b-it:free",
+        description: "نسخة أخف قليلاً من Gemma 4 ولكنها ذكية جداً.",
+      },
+      {
+        label: "gpt-oss-120b (free)",
+        modelId: "openai/gpt-oss-120b:free",
+        description:
+          "بسبب حجمه الكبير 120B، يمتلك قدرة عالية على فهم اللغات البرمجية المتعددة.",
+      },
+    ],
+  },
+  {
+    title: "الفئة الثالثة: الموديلات المتوسطة (ممتازة للمهام السريعة)",
+    description: "",
+    models: [
+      {
+        label: "Gemma 3 27B (free)",
+        modelId: "google/gemma-3-27b-it:free",
+        description: "",
+      },
+      {
+        label: "Nemotron 3 Super (free)",
+        modelId: "nvidia/nemotron-3-super-120b-a12b:free",
+        description: "موديلات Nvidia ممتازة في صياغة الأكواد المنطقية.",
+      },
+      {
+        label: "Riverflow V2 Max Preview",
+        modelId: "sourceful/riverflow-v2-max-preview",
+        description: "",
+      },
+      {
+        label: "MiniMax M2.5 (free)",
+        modelId: "minimax/minimax-m2.5:free",
+        description: "",
+      },
+      {
+        label: "Trinity Large Preview (free)",
+        modelId: "arcee-ai/trinity-large-preview:free",
+        description: "",
+      },
+      {
+        label: "Uncensored (free)",
+        modelId:
+          "cognitivecomputations/dolphin-mistral-24b-venice-edition:free",
+        description:
+          "غالباً ما يكون مبني على Llama، جيد للكود لكنه يفتقر أحياناً لضوابط الدقة.",
+      },
+    ],
+  },
+  {
+    title: "الفئة الرابعة: موديلات الحجم الصغير (للكود البسيط والتصحيح)",
+    description: "",
+    models: [
+      {
+        label: "Gemma 3 12B (free)",
+        modelId: "google/gemma-3-12b-it:free",
+        description: "",
+      },
+      {
+        label: "Nemotron 3 Nano 30B A3B (free)",
+        modelId: "nvidia/nemotron-3-nano-30b-a3b:free",
+        description: "",
+      },
+      {
+        label: "Riverflow V2 Pro",
+        modelId: "sourceful/riverflow-v2-pro",
+        description: "",
+      },
+      {
+        label: "Riverflow V2 Standard Preview",
+        modelId: "sourceful/riverflow-v2-standard-preview",
+        description: "",
+      },
+      {
+        label: "gpt-oss-20b (free)",
+        modelId: "openai/gpt-oss-20b:free",
+        description: "",
+      },
+      {
+        label: "Lyria 3 Pro Preview",
+        modelId: "google/lyria-3-pro-preview",
+        description:
+          "موديل من جوجل، يميل أكثر للوسائط المتعددة لكنه جيد في البرمجة الأساسية.",
+      },
+      {
+        label: "Gemma 3n 4B (free)",
+        modelId: "google/gemma-3n-e4b-it:free",
+        description: "",
+      },
+      {
+        label: "Gemma 3 4B (free)",
+        modelId: "google/gemma-3-4b-it:free",
+        description: "",
+      },
+      {
+        label: "Llama 3.2 3B Instruct (free)",
+        modelId: "meta-llama/llama-3.2-3b-instruct:free",
+        description: "صغير جداً، يصلح فقط للأكواد البسيطة جداً.",
+      },
+      {
+        label: "LFM2.5-1.2B-Thinking (free)",
+        modelId: "liquid/lfm-2.5-1.2b-thinking:free",
+        description: "موديل يعتمد على التفكير العميق رغم صغر حجمه.",
+      },
+    ],
+  },
+  {
+    title: "الفئة الخامسة: موديلات متخصصة أو غير معروفة كلياً في البرمجة",
+    description: "",
+    models: [
+      {
+        label: "Elephant",
+        modelId: "openrouter/elephant-alpha",
+        description: "",
+      },
+      {
+        label: "Riverflow V2 Fast",
+        modelId: "sourceful/riverflow-v2-fast",
+        description: "",
+      },
+      {
+        label: "LFM2.5-1.2B-Instruct (free)",
+        modelId: "liquid/lfm-2.5-1.2b-instruct:free",
+        description: "",
+      },
+      {
+        label: "Nemotron Nano 12B 2 VL (free)",
+        modelId: "nvidia/nemotron-nano-12b-v2-vl:free",
+        description: "",
+      },
+      {
+        label: "Nemotron Nano 9B V2 (free)",
+        modelId: "nvidia/nemotron-nano-9b-v2:free",
+        description: "",
+      },
+      {
+        label: "Gemma 3n 2B (free)",
+        modelId: "google/gemma-3n-e2b-it:free",
+        description: "",
+      },
+      {
+        label: "Lyria 3 Clip Preview",
+        modelId: "google/lyria-3-clip-preview",
+        description: "",
+      },
+    ],
+  },
+  {
+    title: "الفئة السادسة: موديلات صور (لا تستخدم للبرمجة)",
+    description:
+      "هذه الموديلات لتوليد الصور فقط، وإذا طلبت منها كوداً فلن تعطيك نتائج مفيدة:",
+    models: [
+      {
+        label: "FLUX.2 Max",
+        modelId: "black-forest-labs/flux.2-max",
+        description: "",
+      },
+      {
+        label: "FLUX.2 Pro",
+        modelId: "black-forest-labs/flux.2-pro",
+        description: "",
+      },
+      {
+        label: "FLUX.2 Flex",
+        modelId: "black-forest-labs/flux.2-flex",
+        description: "",
+      },
+      {
+        label: "FLUX.2 Klein 4B",
+        modelId: "black-forest-labs/flux.2-klein-4b",
+        description: "",
+      },
+      {
+        label: "Seedream 4.5",
+        modelId: "bytedance-seed/seedream-4.5",
+        description: "",
+      },
+    ],
+  },
+];
+
+function parseCsvRow(row: string): string[] {
+  const out: string[] = [];
+  let cur = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < row.length; i++) {
+    const ch = row[i];
+    if (ch === '"') {
+      if (inQuotes && row[i + 1] === '"') {
+        cur += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+      continue;
+    }
+    if (ch === "," && !inQuotes) {
+      out.push(cur);
+      cur = "";
+      continue;
+    }
+    cur += ch;
+  }
+  out.push(cur);
+  return out.map((s) => s.trim());
+}
+
+function parseOpenRouterCsv(csv: string): OpenRouterCsvModel[] {
+  const lines = csv
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter((l) => l.length > 0);
+  if (lines.length === 0) return [];
+
+  const header = parseCsvRow(lines[0]);
+  const idxName = header.findIndex((h) => h === "اسم الموديل");
+  const idxCategory = header.findIndex((h) => h === "التصنيف");
+  const idxProvider = header.findIndex((h) => h === "الموفر (Provider)");
+  const idxUrl = header.findIndex((h) => h === "الرابط المباشر");
+  if (
+    idxName === -1 ||
+    idxCategory === -1 ||
+    idxProvider === -1 ||
+    idxUrl === -1
+  ) {
+    return [];
+  }
+
+  const models: OpenRouterCsvModel[] = [];
+  for (const line of lines.slice(1)) {
+    const row = parseCsvRow(line);
+    const name = row[idxName] ?? "";
+    const category = row[idxCategory] ?? "";
+    const provider = row[idxProvider] ?? "";
+    const url = row[idxUrl] ?? "";
+    const modelId = url
+      .replace(/^https?:\/\/openrouter\.ai\//i, "")
+      .trim()
+      .replace(/^\//, "");
+    if (!name || !url || !modelId) continue;
+    models.push({ name, category, provider, url, modelId });
+  }
+  return models;
+}
+
+function OpenRouterModelBrowser({
+  value,
+  catalog,
+  onPick,
+}: {
+  value: string;
+  catalog: string[] | null;
+  onPick: (next: string) => void;
+}) {
+  const [query, setQuery] = useState("");
+  const [category, setCategory] = useState<string>("");
+  const [tab, setTab] = useState<"all" | "free">("all");
+
+  const allModels = useMemo(
+    () => parseOpenRouterCsv(openRouterCategorizedModelsCsv),
+    [],
+  );
+
+  const categories = useMemo(() => {
+    const set = new Set<string>();
+    for (const m of allModels) {
+      if (m.category) set.add(m.category);
+    }
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [allModels]);
+
+  const normalizedQuery = query.trim().toLowerCase();
+  const catalogSet = useMemo(() => {
+    if (!catalog || catalog.length === 0) return null;
+    return new Set(catalog);
+  }, [catalog]);
+
+  const filtered = useMemo(() => {
+    return allModels
+      .filter((m) => {
+        if (tab === "free") return false;
+        if (category && m.category !== category) return false;
+        if (!normalizedQuery) return true;
+        return (
+          m.name.toLowerCase().includes(normalizedQuery) ||
+          m.modelId.toLowerCase().includes(normalizedQuery)
+        );
+      })
+      .slice(0, 250);
+  }, [allModels, category, tab, normalizedQuery]);
+
+  return (
+    <div className="or-browser" role="region" aria-label="OpenRouter model browser">
+      <div className="or-browser-tabs" role="tablist" aria-label="Model list tabs">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={tab === "all"}
+          className={`or-browser-tab ${tab === "all" ? "is-active" : ""}`}
+          onClick={() => setTab("all")}
+        >
+          All models
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={tab === "free"}
+          className={`or-browser-tab ${tab === "free" ? "is-active" : ""}`}
+          onClick={() => setTab("free")}
+        >
+          Free models
+        </button>
+      </div>
+
+      <div className="or-browser-controls">
+        <input
+          className="or-browser-search"
+          placeholder={tab === "free" ? "Free list" : "Search models…"}
+          value={query}
+          disabled={tab === "free"}
+          onChange={(e) => setQuery(e.target.value)}
+        />
+        <select
+          className="or-browser-select"
+          value={category}
+          disabled={tab === "free"}
+          onChange={(e) => setCategory(e.target.value)}
+          aria-label="Filter by category"
+        >
+          <option value="">All categories</option>
+          {categories.map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
+        </select>
+        <div className="or-browser-count" aria-label="Result count">
+          {tab === "free" ? "Curated" : `${filtered.length} shown`}
+        </div>
+      </div>
+
+      {tab === "free" ? (
+        <div className="or-free" role="list">
+          {OPENROUTER_FREE_CATEGORIES.map((cat) => (
+            <div key={cat.title} className="or-free-category" role="listitem">
+              <div className="or-free-category-title">{cat.title}</div>
+              {cat.description && (
+                <div className="or-free-category-desc">{cat.description}</div>
+              )}
+              <div className="or-free-items">
+                {cat.models.map((m) => {
+                  const available = catalogSet ? catalogSet.has(m.modelId) : null;
+                  return (
+                    <button
+                      key={m.modelId}
+                      type="button"
+                      className={`or-free-item ${m.modelId === value ? "is-active" : ""}`}
+                      onClick={() => onPick(m.modelId)}
+                      title={m.modelId}
+                    >
+                      <div className="or-free-item-main">
+                        <div className="or-free-item-title">{m.label}</div>
+                        <div className="or-free-item-sub">{m.modelId}</div>
+                        {m.description && (
+                          <div className="or-free-item-desc">{m.description}</div>
+                        )}
+                      </div>
+                      <div className="or-free-item-meta">
+                        {available === true && (
+                          <span className="or-browser-chip or-ok">In catalog</span>
+                        )}
+                        {available === false && (
+                          <span className="or-browser-chip or-warn">Not in catalog</span>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="or-browser-list" role="list">
+          {filtered.map((m) => {
+            const available = catalogSet ? catalogSet.has(m.modelId) : null;
+            return (
+              <button
+                key={m.modelId}
+                type="button"
+                className={`or-browser-item ${m.modelId === value ? "is-active" : ""}`}
+                onClick={() => onPick(m.modelId)}
+                title={m.modelId}
+                role="listitem"
+              >
+                <div className="or-browser-item-main">
+                  <div className="or-browser-item-title">{m.name}</div>
+                  <div className="or-browser-item-sub">{m.modelId}</div>
+                </div>
+                <div className="or-browser-item-meta">
+                  {m.category && (
+                    <span className="or-browser-badge">{m.category}</span>
+                  )}
+                  {available === true && (
+                    <span className="or-browser-chip or-ok">In catalog</span>
+                  )}
+                  {available === false && (
+                    <span className="or-browser-chip or-warn">Not in catalog</span>
+                  )}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function SettingsModal({ onClose }: { onClose: () => void }) {
   const [s, setS] = useState<Settings>(DEFAULTS);
   const [loaded, setLoaded] = useState(false);
@@ -215,29 +593,7 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
   const [openRouterCatalog, setOpenRouterCatalog] = useState<string[] | null>(
     null,
   );
-
-  const resolveOpenRouterPresets = (catalog: string[] | null): ModelPreset[] => {
-    if (!catalog || catalog.length === 0) return OPENROUTER_PRESETS_FALLBACK;
-    const have = new Set(catalog);
-
-    const findRegexMatch = (patterns: RegExp[]): string | undefined => {
-      for (const re of patterns) {
-        const hit = catalog.find((id) => re.test(id));
-        if (hit) return hit;
-      }
-      return undefined;
-    };
-
-    const resolved: ModelPreset[] = [];
-    for (const p of OPENROUTER_PRESET_CANDIDATES) {
-      const pick = p.candidates.find((c) => have.has(c));
-      const best = pick ?? findRegexMatch(p.fallback);
-      if (best) resolved.push({ label: p.label, value: best, tone: p.tone });
-    }
-    return resolved.length > 0 ? resolved : OPENROUTER_PRESETS_FALLBACK;
-  };
-
-  const openrouterPresets = resolveOpenRouterPresets(openRouterCatalog);
+  const [openRouterBrowserOpen, setOpenRouterBrowserOpen] = useState(false);
 
   const testOpenRouter = async () => {
     setOrProbe({ kind: "testing" });
@@ -368,228 +724,234 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
   return (
     <div className="settings-overlay" onClick={onClose}>
       <div className="settings-modal" onClick={(e) => e.stopPropagation()}>
-        <h2>Settings</h2>
-
-        <div className="row">
-          <label>
-            Provider mode
-            <span
-              style={{ color: "#8a8a8a", fontSize: 11, marginLeft: 6 }}
-            >
-              — how planner, executor, reviewer map onto backends
-            </span>
-          </label>
-          <select
-            value={s.provider_mode}
-            onChange={(e) =>
-              setS({
-                ...s,
-                provider_mode: e.target.value as Settings["provider_mode"],
-              })
-            }
-          >
-            <option value="cloud">
-              Cloud (everything on OpenRouter, no fallback)
-            </option>
-            <option value="local">
-              Local (everything on Ollama, no fallback)
-            </option>
-            <option value="hybrid">
-              Hybrid (planner/reviewer on OpenRouter, executor on Ollama,
-              cross-fallback)
-            </option>
-          </select>
-        </div>
-
-        <div className="row">
-          <label>OpenRouter API key (required for cloud / hybrid modes)</label>
-          <input
-            type="password"
-            placeholder="sk-or-…"
-            value={s.openrouter_api_key}
-            onChange={(e) => setS({ ...s, openrouter_api_key: e.target.value })}
-          />
-        </div>
-        <div className="row">
-          <label>OpenRouter default model</label>
-          <input
-            value={s.openrouter_model}
-            onChange={(e) => setS({ ...s, openrouter_model: e.target.value })}
-          />
-          <PresetButtons
-            value={s.openrouter_model}
-            presets={openrouterPresets}
-            defaultLabel="Auto"
-            defaultValue={DEFAULTS.openrouter_model}
-            onPick={(next) => setS({ ...s, openrouter_model: next })}
-          />
-        </div>
-
-        <div className="row">
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <button
-              type="button"
-              onClick={testOpenRouter}
-              disabled={orProbe.kind === "testing"}
-            >
-              {orProbe.kind === "testing"
-                ? "Testing…"
-                : "Test OpenRouter connection"}
-            </button>
-            {orProbe.kind === "ok" && orProbe.key_valid && (
-              <span style={{ color: "#4caf50", fontSize: 12 }}>
-                ✓ key valid ·{" "}
-                {orProbe.model_available ? (
-                  <>
-                    model <code>{s.openrouter_model}</code> available
-                  </>
-                ) : (
-                  <span style={{ color: "#f9a825" }}>
-                    ⚠ model <code>{s.openrouter_model}</code> not in catalog
-                  </span>
-                )}
-                {orProbe.credits_remaining !== null && (
-                  <> · ${orProbe.credits_remaining.toFixed(2)} left</>
-                )}
-              </span>
-            )}
-            {orProbe.kind === "ok" && !orProbe.key_valid && (
-              <span style={{ color: "#ef5350", fontSize: 12 }}>
-                ✗ reachable, but API key was rejected
-              </span>
-            )}
-            {orProbe.kind === "err" && (
-              <span style={{ color: "#ef5350", fontSize: 12 }}>
-                ✗ {orProbe.message}
-              </span>
-            )}
+        <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
+          <h2>Settings</h2>
+          <div style={{ fontSize: 10, color: "#777", paddingTop: 6 }}>
+            build <code>{__BUILD_STAMP__}</code>
           </div>
         </div>
 
-        <div className="row">
-          <label>
-            Per-role model overrides (optional — blank = use provider default)
-          </label>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "80px 1fr",
-              gap: 6,
-              alignItems: "center",
-            }}
-          >
-            <span style={{ fontSize: 12, color: "#bbb" }}>Planner</span>
-            <div className="preset-input">
+        <div className="settings-card">
+          <div className="settings-card-header">
+            <div className="settings-card-title">OpenRouter</div>
+            <div className="settings-card-subtitle">
+              Cloud / Hybrid configuration
+            </div>
+          </div>
+
+          <div className="row">
+            <label>
+              Provider mode
+              <span
+                style={{ color: "#8a8a8a", fontSize: 11, marginLeft: 6 }}
+              >
+                — how planner, executor, reviewer map onto backends
+              </span>
+            </label>
+            <select
+              value={s.provider_mode}
+              onChange={(e) =>
+                setS({
+                  ...s,
+                  provider_mode: e.target.value as Settings["provider_mode"],
+                })
+              }
+            >
+              <option value="cloud">
+                Cloud (everything on OpenRouter, no fallback)
+              </option>
+              <option value="local">
+                Local (everything on Ollama, no fallback)
+              </option>
+              <option value="hybrid">
+                Hybrid (planner/reviewer on OpenRouter, executor on Ollama,
+                cross-fallback)
+              </option>
+            </select>
+          </div>
+
+          <div className="row">
+            <label>OpenRouter API key</label>
+            <input
+              type="password"
+              placeholder="sk-or-…"
+              value={s.openrouter_api_key}
+              onChange={(e) =>
+                setS({ ...s, openrouter_api_key: e.target.value })
+              }
+            />
+          </div>
+
+          <div className="row">
+            <label>OpenRouter default model</label>
+            <input
+              value={s.openrouter_model}
+              onChange={(e) => setS({ ...s, openrouter_model: e.target.value })}
+            />
+            <div style={{ display: "flex", justifyContent: "flex-end" }}>
+              <button
+                type="button"
+                className="or-browser-toggle"
+                onClick={() => setOpenRouterBrowserOpen((v) => !v)}
+              >
+                {openRouterBrowserOpen ? "Hide model browser" : "Browse models"}
+              </button>
+            </div>
+            {openRouterBrowserOpen && (
+              <OpenRouterModelBrowser
+                value={s.openrouter_model}
+                catalog={openRouterCatalog}
+                onPick={(next) => {
+                  setS({ ...s, openrouter_model: next });
+                  setOpenRouterBrowserOpen(false);
+                }}
+              />
+            )}
+          </div>
+
+          <div className="row">
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <button
+                type="button"
+                onClick={testOpenRouter}
+                disabled={orProbe.kind === "testing"}
+              >
+                {orProbe.kind === "testing"
+                  ? "Testing…"
+                  : "Test OpenRouter connection"}
+              </button>
+              {orProbe.kind === "ok" && orProbe.key_valid && (
+                <span style={{ color: "#4caf50", fontSize: 12 }}>
+                  ✓ key valid ·{" "}
+                  {orProbe.model_available ? (
+                    <>
+                      model <code>{s.openrouter_model}</code> available
+                    </>
+                  ) : (
+                    <span style={{ color: "#f9a825" }}>
+                      ⚠ model <code>{s.openrouter_model}</code> not in catalog
+                    </span>
+                  )}
+                  {orProbe.credits_remaining !== null && (
+                    <> · ${orProbe.credits_remaining.toFixed(2)} left</>
+                  )}
+                </span>
+              )}
+              {orProbe.kind === "ok" && !orProbe.key_valid && (
+                <span style={{ color: "#ef5350", fontSize: 12 }}>
+                  ✗ reachable, but API key was rejected
+                </span>
+              )}
+              {orProbe.kind === "err" && (
+                <span style={{ color: "#ef5350", fontSize: 12 }}>
+                  ✗ {orProbe.message}
+                </span>
+              )}
+            </div>
+          </div>
+
+          <div className="row">
+            <label>
+              Per-role model overrides (optional — blank = use provider default)
+            </label>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "80px 1fr",
+                gap: 6,
+                alignItems: "center",
+              }}
+            >
+              <span style={{ fontSize: 12, color: "#bbb" }}>Planner</span>
               <input
                 placeholder="e.g. anthropic/claude-3.5-sonnet"
                 value={s.planner_model}
                 onChange={(e) => setS({ ...s, planner_model: e.target.value })}
               />
-              <PresetButtons
-                value={s.planner_model}
-                presets={openrouterPresets}
-                defaultLabel="Default"
-                defaultValue=""
-                onPick={(next) => setS({ ...s, planner_model: next })}
-              />
-            </div>
-            {modelLooksSmall(s.planner_model) && (
-              <>
-                <span />
-                <SmallModelWarning role="planner" />
-              </>
-            )}
-            <span style={{ fontSize: 12, color: "#bbb" }}>Executor</span>
-            <div className="preset-input">
-              <input
-                placeholder="e.g. deepseek-coder:6.7b"
-                value={s.executor_model}
-                onChange={(e) => setS({ ...s, executor_model: e.target.value })}
-              />
-              <PresetButtons
-                value={s.executor_model}
-                presets={OLLAMA_PRESETS}
-                defaultLabel="Default"
-                defaultValue=""
-                onPick={(next) => setS({ ...s, executor_model: next })}
-              />
-            </div>
-            {modelLooksSmall(s.executor_model) && (
-              <>
-                <span />
-                <SmallModelWarning role="executor" />
-              </>
-            )}
-            <span style={{ fontSize: 12, color: "#bbb" }}>Reviewer</span>
-            <div className="preset-input">
+              {modelLooksSmall(s.planner_model) && (
+                <>
+                  <span />
+                  <SmallModelWarning role="planner" />
+                </>
+              )}
+              <span style={{ fontSize: 12, color: "#bbb" }}>Reviewer</span>
               <input
                 placeholder="e.g. anthropic/claude-3.5-sonnet"
                 value={s.reviewer_model}
-                onChange={(e) => setS({ ...s, reviewer_model: e.target.value })}
-              />
-              <PresetButtons
-                value={s.reviewer_model}
-                presets={openrouterPresets}
-                defaultLabel="Default"
-                defaultValue=""
-                onPick={(next) => setS({ ...s, reviewer_model: next })}
+                onChange={(e) =>
+                  setS({ ...s, reviewer_model: e.target.value })
+                }
               />
             </div>
           </div>
         </div>
 
-        <div className="row">
-          <label>Ollama base URL</label>
-          <input
-            value={s.ollama_base_url}
-            onChange={(e) => setS({ ...s, ollama_base_url: e.target.value })}
-          />
-        </div>
-        <div className="row">
-          <label>Ollama model (executor)</label>
-          <input
-            value={s.ollama_model}
-            onChange={(e) => setS({ ...s, ollama_model: e.target.value })}
-          />
-          <PresetButtons
-            value={s.ollama_model}
-            presets={OLLAMA_PRESETS}
-            defaultLabel="Default"
-            defaultValue={DEFAULTS.ollama_model}
-            onPick={(next) => setS({ ...s, ollama_model: next })}
-          />
-          {modelLooksSmall(s.ollama_model) && (
-            <SmallModelWarning role="executor" />
-          )}
-        </div>
+        <div className="settings-card">
+          <div className="settings-card-header">
+            <div className="settings-card-title">Ollama</div>
+            <div className="settings-card-subtitle">Local provider settings</div>
+          </div>
 
-        <div className="row">
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <button
-              type="button"
-              onClick={testOllama}
-              disabled={probe.kind === "testing"}
-            >
-              {probe.kind === "testing" ? "Testing…" : "Test Ollama connection"}
-            </button>
-            {probe.kind === "ok" && probe.model_available && (
-              <span style={{ color: "#4caf50", fontSize: 12 }}>
-                ✓ reachable · model <code>{s.ollama_model}</code> available
-              </span>
+          <div className="row">
+            <label>Ollama base URL</label>
+            <input
+              value={s.ollama_base_url}
+              onChange={(e) => setS({ ...s, ollama_base_url: e.target.value })}
+            />
+          </div>
+          <div className="row">
+            <label>Ollama model (executor)</label>
+            <input
+              value={s.ollama_model}
+              onChange={(e) => setS({ ...s, ollama_model: e.target.value })}
+            />
+            {modelLooksSmall(s.ollama_model) && (
+              <SmallModelWarning role="executor" />
             )}
-            {probe.kind === "ok" && !probe.model_available && (
-              <span style={{ color: "#f9a825", fontSize: 12 }}>
-                ⚠ reachable, but model <code>{s.ollama_model}</code> is not
-                pulled. Available:{" "}
-                {probe.available_models.slice(0, 5).join(", ") || "(none)"}
-                {probe.available_models.length > 5 ? ", …" : ""}
-              </span>
+          </div>
+
+          <div className="row">
+            <label>Executor override (optional — blank = use provider default)</label>
+            <input
+              placeholder="e.g. qwen2.5-coder:7b"
+              value={s.executor_model}
+              onChange={(e) => setS({ ...s, executor_model: e.target.value })}
+            />
+            {modelLooksSmall(s.executor_model) && (
+              <SmallModelWarning role="executor" />
             )}
-            {probe.kind === "err" && (
-              <span style={{ color: "#ef5350", fontSize: 12 }}>
-                ✗ {probe.message}
-              </span>
-            )}
+          </div>
+
+          <div className="row">
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <button
+                type="button"
+                onClick={testOllama}
+                disabled={probe.kind === "testing"}
+              >
+                {probe.kind === "testing"
+                  ? "Testing…"
+                  : "Test Ollama connection"}
+              </button>
+              {probe.kind === "ok" && probe.model_available && (
+                <span style={{ color: "#4caf50", fontSize: 12 }}>
+                  ✓ reachable · model <code>{s.ollama_model}</code> available
+                </span>
+              )}
+              {probe.kind === "ok" && !probe.model_available && (
+                <span style={{ color: "#f9a825", fontSize: 12 }}>
+                  ⚠ reachable, but model <code>{s.ollama_model}</code> is not
+                  pulled. Available:{" "}
+                  {probe.available_models.slice(0, 5).join(", ") || "(none)"}
+                  {probe.available_models.length > 5 ? ", …" : ""}
+                </span>
+              )}
+              {probe.kind === "err" && (
+                <span style={{ color: "#ef5350", fontSize: 12 }}>
+                  ✗ {probe.message}
+                </span>
+              )}
+            </div>
           </div>
         </div>
 

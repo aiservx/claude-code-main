@@ -486,6 +486,33 @@ textarea:focus {
   gap: 8px;
   margin-top: 12px;
 }
+
+.settings-card {
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.14);
+  padding: 12px;
+  margin-top: 12px;
+}
+
+.settings-card-header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 10px;
+}
+
+.settings-card-title {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.settings-card-subtitle {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.58);
+}
 /* Amber "small model" advisory under planner/executor model fields.
    Mirrors the inline yellow "reachable but not pulled" chip tone but
    renders as a multi-line block so longer copy fits without wrapping
@@ -624,6 +651,261 @@ textarea:focus {
 .preset-btn.ai-pill.tone-default.is-active {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.12) 100%);
   border-color: rgba(255, 255, 255, 0.24);
+}
+
+.or-browser-toggle {
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.or-browser {
+  margin-top: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.18);
+  overflow: hidden;
+}
+
+.or-browser-tabs {
+  display: flex;
+  gap: 6px;
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+  background: rgba(0, 0, 0, 0.16);
+}
+
+.or-browser-tab {
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.20);
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.or-browser-tab:hover {
+  border-color: rgba(255, 255, 255, 0.22);
+  color: #fff;
+}
+
+.or-browser-tab.is-active {
+  border-color: rgba(100, 160, 255, 0.55);
+  background: rgba(100, 160, 255, 0.16);
+  color: #fff;
+}
+
+.or-browser-controls {
+  display: grid;
+  grid-template-columns: 1fr 180px auto;
+  gap: 8px;
+  padding: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+  background: rgba(0, 0, 0, 0.14);
+  align-items: center;
+}
+
+.or-browser-search {
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 8px;
+}
+
+.or-browser-select {
+  height: 28px;
+  border-radius: 8px;
+}
+
+.or-browser-count {
+  font-size: 11px;
+  color: var(--fg-dim);
+  white-space: nowrap;
+}
+
+.or-browser-list {
+  max-height: 280px;
+  overflow: auto;
+}
+
+.or-free {
+  max-height: 360px;
+  overflow: auto;
+  padding: 10px;
+}
+
+.or-free-category {
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.14);
+  margin-bottom: 10px;
+}
+
+.or-free-category-title {
+  font-size: 12px;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.or-free-category-desc {
+  margin-top: 4px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.or-free-items {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.or-free-item {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.20);
+  cursor: pointer;
+  text-align: left;
+}
+
+.or-free-item:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.or-free-item.is-active {
+  border-color: rgba(100, 160, 255, 0.55);
+  background: rgba(100, 160, 255, 0.12);
+}
+
+.or-free-item-main {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.or-free-item-title {
+  font-size: 12px;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.9);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.or-free-item-sub {
+  font-size: 11px;
+  font-family: var(--mono);
+  color: rgba(255, 255, 255, 0.62);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.or-free-item-desc {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.72);
+  line-height: 1.35;
+}
+
+.or-free-item-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.or-browser-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  cursor: pointer;
+  text-align: left;
+}
+
+.or-browser-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.or-browser-item.is-active {
+  background: rgba(100, 160, 255, 0.10);
+}
+
+.or-browser-item-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.or-browser-item-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.or-browser-item-sub {
+  font-size: 11px;
+  font-family: var(--mono);
+  color: rgba(255, 255, 255, 0.62);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.or-browser-item-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.or-browser-badge {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.78);
+  background: rgba(0, 0, 0, 0.22);
+  white-space: nowrap;
+}
+
+.or-browser-chip {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.or-browser-chip.or-ok {
+  color: #9fe8c8;
+  border: 1px solid rgba(159, 232, 200, 0.28);
+  background: rgba(32, 66, 58, 0.35);
+}
+
+.or-browser-chip.or-warn {
+  color: #d7b76a;
+  border: 1px solid rgba(249, 168, 37, 0.25);
+  background: rgba(60, 45, 14, 0.35);
 }
 
 /* ---------- Agent role chips ---------- */

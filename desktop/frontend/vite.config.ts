@@ -6,6 +6,9 @@ import react from "@vitejs/plugin-react";
 // build target is one level up in `../dist`.
 export default defineConfig({
   plugins: [react()],
+  define: {
+    __BUILD_STAMP__: JSON.stringify(new Date().toISOString()),
+  },
   build: {
     outDir: "../dist",
     emptyOutDir: true,
@@ -17,6 +20,9 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
     host: "127.0.0.1",
+    fs: {
+      allow: ["../.."],
+    },
   },
   envPrefix: ["VITE_", "TAURI_"],
 });
