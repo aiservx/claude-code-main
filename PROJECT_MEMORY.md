@@ -1216,5 +1216,243 @@ retry itself surfaces which of them actually matter in practice.
 
 ---
 
+## 11. Scenario A retry on `qwen2.5-coder:7b`
+
+**Date.** 2026-04-20. **HEAD at time of test.** `main` after PR #17
+(A-1/A-2/A-3 closed).
+**Mode.** Local. **Executor/Reviewer/Planner.** `qwen2.5-coder:7b`
+(4.7 GB, 7.6 B params, Q4_K_M) via Ollama `0.13.0` on CPU.
+**Project dir.** `/home/ubuntu/oc-test-run-2` (empty before run).
+**Goal.** *"Create a file named HELLO.md in the project root with
+exactly one line of text: 'Hello from Open Claude Code.' Then run `ls
+-1` to list the project root."*
+
+### 11.1 Raw result
+
+**FAILED.** `HELLO.md` was never written.
+`ls -la /home/ubuntu/oc-test-run-2/` after the run shows only
+`PROJECT_MEMORY.json` — no `HELLO.md` anywhere on disk. The run was
+cancelled by the operator after ~3 minutes of repeated retry loops.
+
+The task row in `TaskPanel` displayed a `✓` (`status = "done"`) for
+the `HELLO.md` task despite its trace containing only error entries
+and zero `tool_call` entries — a separate bug tracked as F-11 below.
+
+### 11.2 What actually happened (timeline)
+
+1. `goal:planning` → `goal:planning_done` emitted, planning chip
+   rendered correctly (F-2 still works).
+2. Planner call to Ollama returned a syntactically valid 2-task plan
+   streamed into the Chat pane — **then** immediately produced
+   `ai:error`
+   `planner failed, falling back to executor-only: error decoding
+   response body` (see
+   <ref_snippet file="/home/ubuntu/repos/claude-code-main/desktop/src-tauri/src/ai.rs" lines="1438-1448" />).
+   Despite the user-visible plan text looking well-formed, the HTTP
+   body decode returned `Err` at the `reqwest` layer. Classified as
+   **F-9**.
+3. Controller fell through to executor-only mode (still `ai.rs:1449`).
+   Task 1 entered `RUNNING` on the TaskPanel.
+4. First executor iteration failed with `[executor] error: ollama
+   request failed: error sending request for url
+   (http://localhost:11434/api/chat)` — a **connection-level**
+   failure, not a decode failure. Classified as **F-10**. Ollama
+   itself was healthy throughout (`ollama ps` showed the model loaded,
+   `curl http://localhost:11434/api/tags` returned 200).
+5. `execute_task_with_retries` retried (`retries: 1`). Second attempt
+   produced the same `error sending request for url`.
+6. The reviewer-feedback injection added the error string verbatim
+   into the next prompt (see the `session.turns[0].user` field in
+   `/home/ubuntu/oc-test-run-2/PROJECT_MEMORY.json` after the run —
+   the user message contains
+   `"REVIEWER FEEDBACK from previous attempt: previous attempt
+   failed: ollama request failed: error sending request for url …"`),
+   which is wrong scope: a transport-layer error is not reviewer
+   feedback and should not be fed back into the model as task
+   criticism.
+7. Operator clicked `Cancel`. Goal transitioned to `cancelled` via
+   <ref_snippet file="/home/ubuntu/repos/claude-code-main/desktop/src-tauri/src/controller.rs" lines="282-286" />.
+   But task row showed `✓` (done). Classified as **F-11**.
+
+### 11.3 Assertions — pass / fail breakdown
+
+Against the assertions from `scenario_a_retry_plan.md`:
+
+| # | Assertion | Result |
+|---|-----------|--------|
+| 1 | Topbar path updates after `Open project…`, no red banner on failures_log | **Pass** (A-2 fix holds) |
+| 2 | `Test Ollama connection` green with model available | **Pass** |
+| 3 | No F-4 warning on `qwen2.5-coder:7b` | **Pass** (`:7b` not matched by regex) |
+| 4 | `planner ready` / `executor ready` both green in Local | **Pass** (F-1 still holds) |
+| 5 | Planning chip visible ≤2 s before task rows appear | **Pass** (F-2 still holds) |
+| 6 | Task icons transition `○ → ⋯ → ✓` | **Mixed** — animation transitioned, but end state is wrong (F-11) |
+| 7 | Provider badge reads `OLLAMA qwen2.5-coder:7b`, never `openrouter` | **Pass** |
+| 8 | `write_file` tool_call appears for HELLO.md | **Fail** — zero `tool_call` entries in trace |
+| 9 | `cat /home/ubuntu/oc-test-run-2/HELLO.md` matches expected line | **Fail** — file does not exist |
+| 10 | `ls -1` runs without confirm modal | **Blocked** — never reached |
+| 11 | Reviewer emits a verdict (not `unparsed`) | **Blocked** — never reached |
+| 12 | F-8: last-project auto-restore on reopen | **Not run** — test cancelled before step 7 |
+| 13 | A-1: no terminal tabs blown away mid-run | **Pass** (never triggered; no `run_cmd` executed) |
+| 14 | A-2: failures pane preserved on reopen | **Pass by inspection** — no clear-on-open call in the new App.tsx paths after PR #17 |
+| 15 | A-3: binary launches on Linux | **Pass** — tested binary built and ran clean |
+
+**Verdict.** A-1 / A-2 / A-3 are genuinely closed — none of the three
+regressions that PR #17 fixed recurred. But **two new
+transport-layer bugs (F-9, F-10)** and **one task-state bug (F-11)**
+prevent the golden path from completing even on a ≥7 B executor.
+Raising the executor size (F-4's prescription) is necessary but not
+sufficient.
+
+### 11.4 New findings
+
+#### F-9 — planner decode error on successful stream
+
+- **Where.** `stream_ollama` in
+  <ref_snippet file="/home/ubuntu/repos/claude-code-main/desktop/src-tauri/src/ai.rs" lines="679-773" />
+  → surfaced by the planner branch at
+  <ref_snippet file="/home/ubuntu/repos/claude-code-main/desktop/src-tauri/src/ai.rs" lines="1438-1448" />.
+- **Symptom.** Valid JSON task-array streamed and visible in the
+  Chat pane; the call returns `Err("error decoding response body")`
+  at the reqwest layer seconds later. Controller falls through to
+  executor-only and discards the plan that the user can see.
+- **Likely root causes (in order of plausibility).**
+  1. **Whole-request timeout on long streams.**
+     `reqwest::Client::builder().timeout(Duration::from_secs(300))`
+     (`ai.rs:708-711`) applies to the entire request including body
+     streaming. On cold CPU the planner takes 60–90 s *and* the
+     stream stays open for more tokens post-`done: true`; if reqwest
+     hits 300 s before the stream closes it yields a body-decode
+     error. Fix: switch to `.connect_timeout(…)` + a custom
+     per-read watchdog; do not put a single budget on the whole
+     streaming response.
+  2. **Premature connection close by Ollama.** Ollama 0.13.0 closes
+     idle connections aggressively under concurrent load. If the
+     `done: true` frame is sent and the server closes the socket
+     before the client has drained the last chunk, reqwest's chunk
+     decoder reports a body error. Fix: treat
+     `hyper::Error::IncompleteMessage` / `reqwest::Error::body` as
+     success when `acc.tool_calls` or `acc.content` is non-empty —
+     the content we needed was already accumulated (see
+     `ai.rs:727-769`).
+  3. **Partial UTF-8 frame at chunk boundary.**
+     `String::from_utf8_lossy(&bytes)` at `ai.rs:738` replaces
+     invalid sequences with `U+FFFD` silently, so the JSON parser
+     on the next line at `ai.rs:745` can get a line that is
+     `{ "message": { "content": "…\u{fffd}…" } }`. Not the proximate
+     cause here (we returned `Err` pre-`done`), but still a latent
+     correctness bug on multi-byte UTF-8 streams.
+- **Severity.** **High**. This is the single issue that kills
+  Planner on first-run even on capable executors.
+
+#### F-10 — executor HTTP connection-level failure on second call
+
+- **Where.** Same `stream_ollama` path, triggered by `call_model`
+  → `call_provider` → `stream_ollama` from the executor branch
+  (around `ai.rs:1479`). Error string is the exact reqwest
+  `send()` rendering: `ollama request failed: error sending
+  request for url (http://localhost:11434/api/chat)` (see
+  `ai.rs:717`).
+- **Symptom.** First call after planner fallthrough errors out at
+  the socket-establish step. `curl http://localhost:11434/api/tags`
+  from the same shell succeeds during the same window, so Ollama
+  itself is reachable — the failure is specific to the reqwest
+  client state inside the Tauri process.
+- **Likely root causes.**
+  1. **Poisoned keep-alive pool entry.** After F-9's half-drained
+     body, reqwest may have put a "dirty" idle connection back into
+     the pool. The next `send()` picks it up, the server has
+     already closed it, and we get `error sending request for
+     url`. Fix: each `stream_ollama` call builds its own `Client`
+     at `ai.rs:708-711` — but because that `Client` goes out of
+     scope, there is no pool reuse to blame. So this is probably
+     NOT the root cause. See next.
+  2. **Per-call `Client::builder()` has a 1-connection race.**
+     Building a fresh `reqwest::Client` per call costs a full TCP+
+     TLS setup every time and, under rapid consecutive requests
+     (planner-fallthrough immediately triggers executor), can race
+     with Ollama's accept queue. Fix: create a shared `reqwest::
+     Client` once on `AppState` and reuse it across
+     `stream_openrouter` and `stream_ollama`, with explicit
+     `pool_idle_timeout(Duration::from_secs(10))` shorter than
+     Ollama's keep-alive.
+  3. **Ollama model-unload between calls.** If `OLLAMA_KEEP_ALIVE`
+     expired between planner and executor, Ollama briefly refuses
+     connections while reloading. Fix: set `keep_alive: -1` in the
+     request body or document `OLLAMA_KEEP_ALIVE=1h` as a
+     recommended env var for the desktop app.
+- **Severity.** **High**. Every executor step after a planner
+  fallthrough fails.
+
+#### F-11 — task marked `done` despite error-only trace
+
+- **Where.**
+  <ref_snippet file="/home/ubuntu/repos/claude-code-main/desktop/src-tauri/src/controller.rs" lines="369-395" />.
+- **Symptom.** The task row in the TaskPanel shows `✓` / status
+  `"done"` for a task whose trace (in
+  `/home/ubuntu/oc-test-run-2/PROJECT_MEMORY.json`) contains only
+  `kind: "error"` entries and zero `kind: "tool_call"` entries.
+- **Root cause.** `execute_task_with_retries` returns
+  `TaskOutcome::Done(summary)` when the executor loop exits
+  successfully — but "successfully" here means *"the executor stopped
+  iterating and the final assistant turn parsed cleanly"*, which can
+  happen after the model produces a plain-text summary like *"I
+  attempted to create HELLO.md but failed due to Ollama connection
+  errors."* No `tool_call` was ever emitted, no write landed, yet
+  the controller treats a clean prose exit as success.
+- **Proposed fix.** `TaskOutcome::Done` should require *at least one
+  successful `tool_call`* (or explicit task-is-no-op acknowledgement)
+  before being accepted. Alternative: when the executor's final
+  message carries no `tool_call` AND the task description mentions
+  a side-effect verb (create / write / run / install / delete),
+  downgrade to `TaskOutcome::Failed` with reason
+  `"executor produced no tool_call"`.
+- **Severity.** **High**. Silent false-success is worse than a loud
+  failure — users will see green checkmarks for runs that did
+  nothing.
+
+### 11.5 What the fixes from §9 / §10 proved in practice
+
+- **F-1 / F-2 / F-3 / F-5 / F-8** (PRs #10/#11): all verified green
+  under §11.3 where they were exercised. None of them regressed under
+  the new stack.
+- **F-4** (PR #12): correct behaviour on `:7b` (no spurious warning).
+  Still worth a live test on a `:3b` tag to confirm the amber chip
+  actually renders.
+- **A-1 / A-2 / A-3** (PR #17): closed. Did not reappear. However,
+  A-1 was never exercised because F-10 blocked the loop before any
+  `run_cmd` ran — so A-1's fix is *inspection-verified*, not
+  *runtime-verified*, on this run.
+
+### 11.6 What this retry changes in §10.7's verdict
+
+§10.7 said the main harness was no longer broken underneath Scenario
+A. That is still true at the *React + Tauri plumbing* layer. But the
+**Rust HTTP-transport layer** (`stream_ollama` specifically) is a
+distinct second floor of the harness, and it **is** broken for any
+run that exercises the planner plus at least one executor step —
+which is every non-trivial goal. PR #17 was a necessary precondition
+for a useful Scenario A retry; it was not sufficient.
+
+### 11.7 Open follow-ups
+
+- [ ] **F-9 fix.** Replace whole-request timeout with
+  connect+per-read watchdog in `stream_ollama`; treat
+  `IncompleteMessage` as success when content already accumulated.
+- [ ] **F-10 fix.** Share a single `reqwest::Client` on `AppState`
+  (and in `stream_openrouter` alike); tune `pool_idle_timeout`; pass
+  `keep_alive` hint to Ollama body.
+- [ ] **F-11 fix.** Require at least one successful `tool_call` for
+  `TaskOutcome::Done` on side-effect tasks.
+- [ ] **Transport-error scoping.** Do not inject reqwest error
+  strings into "REVIEWER FEEDBACK" in the next prompt — that's
+  model-misleading. Only real reviewer verdicts belong there.
+- [ ] **Retry Scenario A again** after F-9/F-10/F-11 land, same
+  executor. Only then can we claim the golden path actually closes.
+- [ ] Optionally: add a lightweight Ollama-health canary loop that
+  pre-warms the model on Settings open so first-goal planner isn't
+  doing cold-start on the clock.
+
+---
+
 *If something here is wrong or incomplete, fix it in-place rather than
 adding a "TODO" note. This file is only useful as long as it's true.*
