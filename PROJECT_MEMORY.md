@@ -895,6 +895,13 @@ Kill-on-project-change can use a `useRef<Set<string>>` that the
 `handleRunningChange` callback updates imperatively, avoiding the
 feedback loop.
 
+**Status — fixed on the same branch as this update.** `TerminalManager.tsx`
+now tracks the running set in `runningRef` (a `useRef<Set<string>>`),
+mutated imperatively from `handleRunningChange`. The project-change
+`useEffect` depends on `[projectDir]` only and snapshots the ref
+before dispatching kills. `closeTab` reads and deletes from the ref
+directly.
+
 #### A-2 (HIGH, persisted failures log silently wiped on every open)
 
 `tasks.rs:349-354` defines `clear_failures_log(project_dir)` which
@@ -930,6 +937,13 @@ already replaces the in-memory slice atomically via `setFailures`; no
 disk clear is needed to "scope" anything, because the file backing
 this project's failures only exists under this project.
 
+**Status — fixed on the same branch as this update.** Both
+`api.clearFailuresLog(...)` calls in `App.tsx` are gone. Only
+`clearFailures()` (the in-memory slice reset) remains on the open and
+restore paths; the persisted `failures_log` on disk survives reopens
+and is replayed into the store via `setFailures` by the existing load
+effect.
+
 #### A-3 (HIGH, non-Windows dev & build broken out of the box)
 
 `desktop/src-tauri/tauri.conf.json:6-9` now hard-codes:
@@ -954,6 +968,12 @@ Correct fix: use a cross-platform invocation such as
 already the declared runtime; `--cwd` is portable). The Windows
 launcher script `scripts/run-snapshot.ps1` can keep its PowerShell
 wrapping; `tauri.conf.json` should not.
+
+**Status — fixed on the same branch as this update.**
+`tauri.conf.json` now uses `bun --cwd ../frontend run build` and the
+equivalent `run dev` for `beforeBuildCommand` / `beforeDevCommand`.
+No shell is invoked, Bun resolves the path natively, and both hooks
+work on Windows, Linux, and macOS.
 
 #### A-4 (MEDIUM, tab close leaks child processes)
 
@@ -1021,18 +1041,22 @@ Rust side already treats as the completion signal (it emits
 `terminal:done` **after** draining stdout/stderr; see
 `tools.rs:588-601`).
 
-#### A-8 (MEDIUM, dedup comment in ai.rs drifted against current
-reality)
+#### A-8 (retracted — original claim was factually wrong)
 
-The `warn_action` dedup introduced by PR #13 / tightened by PR #15
-lives in `ai::run_chat_turn`. The surrounding comment still claims
-the set is scoped "across iterations" without mentioning that the set
-is now cleared on each turn and that the **reviewer no longer
-participates in the dedup at all** in `json_mode` (since #15 skips the
-reviewer entirely in that mode at `ai.rs:1679`). The code is correct;
-the comment is out of date. This is low-risk but confusing to the
-next reader. Fix by an in-place doc pass on the dedup set and the
-early-skip branch.
+The original §10 shipped this item as "dedup comment in `ai::run_chat_turn`
+drifted against current reality." That is **incorrect**. Devin Review
+caught the error on PR #16 (review comment `BUG_pr-review-job-
+0566225c97cb4a029817115da56bbe61_0001`). The `warn_action` dedup does
+**not** live in the backend: `ai.rs` only *emits* the
+`ai:executor_unparsed` event (twice — `ai.rs:1542` iteration-0 empty,
+and `ai.rs:1767` reviewer `Unknown` verdict). The dedup is performed on
+the **frontend** at `Chat.tsx:189-236`, inside the `ai:executor_unparsed`
+listener, and the comment there (`Chat.tsx:191-211`) already correctly
+describes the turn-scoped behaviour — it is neither outdated nor wrong.
+No code or comment change is required. This item is retained here
+(rather than deleted) so the error itself is part of the record: the
+audit it sits inside is a review of unreviewed code, and the reviewer
+earned the right to be reviewed back.
 
 ### 10.2 Confirmed behavioural regressions vs. PR #12
 
@@ -1170,15 +1194,25 @@ The provider-routing / UX stack built through PRs #1-#12 is still
 correct end-to-end. The four user-pushed commits added useful
 capability (persistent failures view, multi-terminal, a vastly better
 model browser) but shipped with three **HIGH-severity** regressions
-(A-1, A-2, A-3) that any serious Scenario A retry will hit in the
-first minute. Fixing them is a precondition for validating anything
-else, and the fixes are small — a dependency-array cleanup, two
-deletions in `App.tsx`, and a one-line `tauri.conf.json` change.
+(A-1, A-2, A-3) that any serious Scenario A retry would have hit in
+the first minute.
+
+**Status update.** All three HIGH regressions are closed on the same
+branch as this audit update (see the per-item `**Status — fixed…**`
+notes in §10.1). The fixes were exactly as small as the audit
+predicted — a dependency-array cleanup in `TerminalManager.tsx`, two
+`clearFailuresLog(...)` deletions in `App.tsx`, and a one-line
+`tauri.conf.json` change. Compile verification passed on all three
+toolchains (`cargo check`, `bunx tsc --noEmit`, `bunx vite build`).
+§10.1 A-8 was retracted after Devin Review correctly pointed out it
+was looking in the wrong file.
 
 The §9.6 item "Retry Scenario A on `qwen2.5-coder:7b` or
-`llama3.1:8b`" remains the right next validation step, but **not
-before** A-1 / A-2 / A-3 are closed. Running on a broken `main` would
-confuse model-capability findings with harness bugs.
+`llama3.1:8b`" is now the right next validation step, and the
+`main` harness is no longer broken underneath it. The remaining §10.2
+/ §10.3 / §10.4 / §10.5 items are real but not preconditions for the
+retry — they will be addressed in dedicated follow-up PRs as the
+retry itself surfaces which of them actually matter in practice.
 
 ---
 

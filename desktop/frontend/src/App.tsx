@@ -164,9 +164,14 @@ export default function App() {
       title: "Open project",
     });
     if (typeof selected === "string" && selected.length > 0) {
-      // Scope failures to the newly-opened project. This intentionally
-      // resets the prior project's failures view.
-      void api.clearFailuresLog(selected).catch(() => {});
+      // Drop the previous project's in-memory failures slice. We do NOT
+      // clear the newly-opened project's on-disk `failures_log` here —
+      // see PROJECT_MEMORY.md §10.1 A-2. That log is already project-
+      // scoped (it lives in that project's PROJECT_MEMORY.json), and
+      // wiping it on open would silently destroy the very history the
+      // Failures panel is meant to surface. The `useEffect` tied to
+      // `projectDir` loads the persisted log into the store via
+      // `setFailures`, which atomically replaces the in-memory slice.
       clearFailures();
       setProjectDir(selected);
       resetMessages();
@@ -203,7 +208,10 @@ export default function App() {
         }
         if (cancelled) return;
         setProjectDir(last);
-        void api.clearFailuresLog(last).catch(() => {});
+        // No clear_failures_log on restore either (see §10.1 A-2).
+        // `clearFailures` drops only the transient in-memory slice; the
+        // persisted failures_log for `last` is then replayed into the
+        // store by the load effect above.
         clearFailures();
         replaceEvents([
           {

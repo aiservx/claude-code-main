@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Terminal } from "./Terminal";
 import { api } from "../api";
 
@@ -14,32 +14,48 @@ function newTerminalId(): string {
   return `term_${Date.now()}_${Math.random().toString(16).slice(2)}`;
 }
 
+/**
+ * Multi-terminal manager.
+ *
+ * Lifecycle note: the set of currently-running child processes is tracked
+ * in a `useRef` — *not* React state — and mutated imperatively from
+ * `handleRunningChange`. It is deliberately **not** a `useEffect`
+ * dependency. PROJECT_MEMORY.md §10.1 A-1 explains why: an earlier
+ * version kept running-ids in state and listed it in the project-change
+ * effect's dep array, which meant every time a child process flipped
+ * `running → true` the parent effect re-fired, killed the freshly-
+ * spawned child, and replaced the tabs mid-use. The ref carries the
+ * same information without causing renders, so the effect's *only*
+ * legitimate dependency is `projectDir`.
+ */
 export function TerminalManager({ projectDir }: { projectDir: string | null }) {
   const [tabs, setTabs] = useState<TerminalTab[]>(() => [
     { id: newTerminalId(), title: "Terminal 1" },
   ]);
   const [activeId, setActiveId] = useState(() => tabs[0]!.id);
-  const [runningTerminals, setRunningTerminals] = useState<Set<string>>(new Set());
+  const runningRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
-    // Kill all running terminals when project changes
-    const killAllRunning = async () => {
-      for (const terminalId of runningTerminals) {
+    // Snapshot so we don't race with handleRunningChange mutations while
+    // the kill RPCs are still in flight.
+    const toKill = Array.from(runningRef.current);
+    runningRef.current.clear();
+
+    void (async () => {
+      for (const terminalId of toKill) {
         try {
           await api.terminalKill(terminalId);
         } catch {
-          // Ignore - process may have already ended
+          // Ignore — process may have already ended.
         }
       }
-      setRunningTerminals(new Set());
-    };
-    killAllRunning();
+    })();
 
     // New project == new terminal sessions (avoid cross-project mixing).
     const id = newTerminalId();
     setTabs([{ id, title: "Terminal 1" }]);
     setActiveId(id);
-  }, [projectDir, runningTerminals]);
+  }, [projectDir]);
 
   useEffect(() => {
     // Keep activeId valid after resets.
@@ -61,20 +77,20 @@ export function TerminalManager({ projectDir }: { projectDir: string | null }) {
     });
   }, []);
 
-  const handleRunningChange = useCallback((terminalId: string, running: boolean) => {
-    setRunningTerminals((prev) => {
-      const next = new Set(prev);
+  const handleRunningChange = useCallback(
+    (terminalId: string, running: boolean) => {
       if (running) {
-        next.add(terminalId);
+        runningRef.current.add(terminalId);
       } else {
-        next.delete(terminalId);
+        runningRef.current.delete(terminalId);
       }
-      return next;
-    });
-  }, []);
+    },
+    [],
+  );
 
   const closeTab = useCallback(async (id: string) => {
-    if (runningTerminals.has(id)) {
+    if (runningRef.current.has(id)) {
+      runningRef.current.delete(id);
       try {
         await api.terminalKill(id);
       } catch {
@@ -85,7 +101,7 @@ export function TerminalManager({ projectDir }: { projectDir: string | null }) {
       if (prev.length <= 1) return prev;
       return prev.filter((t) => t.id !== id);
     });
-  }, [runningTerminals]);
+  }, []);
 
   return (
     <div className="terminal-manager">
@@ -133,9 +149,9 @@ export function TerminalManager({ projectDir }: { projectDir: string | null }) {
       </div>
 
       <div className="terminal-manager-body">
-        <Terminal 
-          projectDir={projectDir} 
-          terminalId={active.id} 
+        <Terminal
+          projectDir={projectDir}
+          terminalId={active.id}
           onRunningChange={(running) => handleRunningChange(active.id, running)}
         />
       </div>
