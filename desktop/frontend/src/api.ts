@@ -43,6 +43,22 @@ export const api = {
       timeoutMs: timeout_ms ?? 30000,
     }),
 
+  runCmdStream: (
+    terminal_id: string,
+    project_dir: string,
+    cmd: string,
+    timeout_ms?: number,
+  ) =>
+    invoke<{ stdout: string; stderr: string; exit_code: number }>("run_cmd_stream", {
+      terminalId: terminal_id,
+      projectDir: project_dir,
+      cmd,
+      timeoutMs: timeout_ms ?? 30000,
+    }),
+
+  terminalKill: (terminal_id: string) =>
+    invoke<void>("terminal_kill", { terminalId: terminal_id }),
+
   sendChat: (
     project_dir: string,
     message: string,
@@ -131,6 +147,10 @@ export const api = {
   /** Load the persisted failures log. */
   loadFailuresLog: (project_dir: string) =>
     invoke<FailureLogEntry[]>("load_failures_log", { projectDir: project_dir }),
+
+  /** Clear the persisted failures log (project-scoped). */
+  clearFailuresLog: (project_dir: string) =>
+    invoke<void>("clear_failures_log", { projectDir: project_dir }),
 };
 
 export type BackendEvent =
@@ -152,7 +172,9 @@ export type BackendEvent =
   | "task:circuit_tripped"
   | "project:scan_done"
   | "goal:planning"
-  | "goal:planning_done";
+  | "goal:planning_done"
+  | "terminal:output"
+  | "terminal:done";
 
 /** Listen to a backend event. Returns an unlisten function. */
 export async function onEvent<T>(

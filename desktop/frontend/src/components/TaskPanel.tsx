@@ -2,11 +2,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api, onEvent } from "../api";
 import { useAppStore } from "../store";
 import type {
-  FailureLogEntry,
   Task,
   TaskAddedEvent,
   TaskCircuitTrippedEvent,
-  TaskFailureLoggedEvent,
   TaskGoalDoneEvent,
   TaskGoalStarted,
   TaskStatus,
@@ -24,14 +22,11 @@ type Props = {
 
 type RunState = "idle" | "running" | "done" | "failed" | "cancelled" | "timeout";
 
-const MAX_VISIBLE_FAILURES = 10;
-
 export function TaskPanel({ projectDir, disabled }: Props) {
   const [goal, setGoal] = useState("");
   const [tree, setTree] = useState<TaskTree | null>(null);
   const [runState, setRunState] = useState<RunState>("idle");
   const [summary, setSummary] = useState<string | null>(null);
-  const [failures, setFailures] = useState<FailureLogEntry[]>([]);
   const [circuitTripped, setCircuitTripped] =
     useState<TaskCircuitTrippedEvent | null>(null);
   const runningRef = useRef(false);
@@ -50,7 +45,6 @@ export function TaskPanel({ projectDir, disabled }: Props) {
       setTree(null);
       setRunState("idle");
       setSummary(null);
-      setFailures([]);
       setCircuitTripped(null);
       return;
     }
@@ -64,17 +58,6 @@ export function TaskPanel({ projectDir, disabled }: Props) {
           // lie.
           setRunState(
             loaded.status === "running" ? "idle" : (loaded.status as RunState),
-          );
-        }
-      })
-      .catch(() => {});
-    void api
-      .loadFailuresLog(projectDir)
-      .then((log) => {
-        if (Array.isArray(log)) {
-          // Show newest first, capped.
-          setFailures(
-            [...log].sort((a, b) => b.at - a.at).slice(0, MAX_VISIBLE_FAILURES),
           );
         }
       })
@@ -162,16 +145,6 @@ export function TaskPanel({ projectDir, disabled }: Props) {
             ),
           };
         });
-      }),
-    );
-    unlistens.push(
-      onEvent<TaskFailureLoggedEvent>("task:failure_logged", (p) => {
-        setFailures((prev) =>
-          [
-            { at: Math.floor(Date.now() / 1000), task_id: p.task_id, error: p.error },
-            ...prev,
-          ].slice(0, MAX_VISIBLE_FAILURES),
-        );
       }),
     );
     unlistens.push(
@@ -401,32 +374,6 @@ export function TaskPanel({ projectDir, disabled }: Props) {
         </div>
       )}
 
-      {failures.length > 0 && (
-        <div className="task-failures">
-          <div className="task-failures-header">
-            Recent failures ({failures.length})
-          </div>
-          <ul className="task-failures-list">
-            {failures.map((f) => (
-              <li key={`${f.task_id}-${f.at}`} className="task-failure-row">
-                <span className="task-failure-time">
-                  {new Date(f.at * 1000).toLocaleTimeString()}
-                </span>
-                <span className="task-failure-id" title={f.task_id}>
-                  {shortTaskId(f.task_id)}
-                </span>
-                <span
-                  className="task-failure-msg"
-                  title={f.error.length > 200 ? f.error : undefined}
-                >
-                  {condenseResult(f.error)}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
       {!tree && (
         <div className="empty-state">
           The autonomous task engine will decompose your goal into tasks and
@@ -632,13 +579,6 @@ function condenseArgs(args: string): string {
   const one = args.replace(/\s+/g, " ").trim();
   const MAX = 80;
   return one.length > MAX ? one.slice(0, MAX - 1) + "…" : one;
-}
-
-/** Display only the first 8 chars of a UUID task id so the failures
- *  row doesn't get visually dominated by the id. Full id is still
- *  visible on hover via `title`. */
-function shortTaskId(id: string): string {
-  return id.length > 10 ? id.slice(0, 8) : id;
 }
 
 function TraceView({ trace }: { trace: TaskTrace }) {

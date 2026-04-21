@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { open as openDialog } from "@tauri-apps/plugin-dialog";
 import { api, onEvent } from "./api";
 import type {
@@ -14,7 +14,9 @@ import { Execution } from "./components/Execution";
 import { SettingsModal } from "./components/Settings";
 import { ConfirmCmdOverlay } from "./components/ConfirmCmd";
 import { TaskPanel } from "./components/TaskPanel";
+import { TerminalManager } from "./components/TerminalManager";
 import { EVENTS_CAP, useAppStore } from "./store";
+import type { FailureLogEntry, TaskFailureLoggedEvent } from "./types";
 
 export default function App() {
   // Consume store slices by selector so components that only care
@@ -33,14 +35,24 @@ export default function App() {
   const pushError = useAppStore((s) => s.pushError);
   const replaceEvents = useAppStore((s) => s.replaceEvents);
   const clearEvents = useAppStore((s) => s.clearEvents);
+  const failures = useAppStore((s) => s.failures);
+  const setFailures = useAppStore((s) => s.setFailures);
+  const pushFailure = useAppStore((s) => s.pushFailure);
+  const clearFailures = useAppStore((s) => s.clearFailures);
   const resetMessages = useAppStore((s) => s.resetMessages);
   const debugOpen = useAppStore((s) => s.debugOpen);
   const toggleDebug = useAppStore((s) => s.toggleDebug);
+  const bottomPanelHeight = useAppStore((s) => s.bottomPanelHeight);
+  const setBottomPanelHeight = useAppStore((s) => s.setBottomPanelHeight);
   const explorerOpen = useAppStore((s) => s.explorerOpen);
   const toggleExplorer = useAppStore((s) => s.toggleExplorer);
   const settingsOpen = useAppStore((s) => s.settingsOpen);
   const setSettingsOpen = useAppStore((s) => s.setSettingsOpen);
   const setGoalPlanning = useAppStore((s) => s.setGoalPlanning);
+
+  const [bottomTab, setBottomTab] = useState<"debug" | "terminal" | "failures">(
+    "terminal",
+  );
 
   // Health check on mount and when settings close
   const refreshHealth = useCallback(async () => {
@@ -84,6 +96,15 @@ export default function App() {
       ),
     );
     unlistens.push(onEvent<FsChange>("fs:changed", () => bumpFsTick()));
+    unlistens.push(
+      onEvent<TaskFailureLoggedEvent>("task:failure_logged", (p) => {
+        pushFailure({
+          at: Math.floor(Date.now() / 1000),
+          task_id: p.task_id,
+          error: p.error,
+        });
+      }),
+    );
     // Scenario-A §9.2 F-2: show a "planning…" chip in TaskPanel from
     // the moment a goal run starts. `goal:planning` fires at scan start
     // and again when the planner stream begins; `goal:planning_done`
@@ -101,7 +122,22 @@ export default function App() {
         void p.then((fn) => fn());
       }
     };
-  }, [pushEvent, pushError, bumpFsTick, setGoalPlanning]);
+  }, [pushEvent, pushError, pushFailure, bumpFsTick, setGoalPlanning]);
+
+  // Load (and scope) failures per project. We also clear local failures
+  // on project close.
+  useEffect(() => {
+    if (!projectDir) {
+      clearFailures();
+      return;
+    }
+    void api
+      .loadFailuresLog(projectDir)
+      .then((log) => {
+        if (Array.isArray(log)) setFailures(log);
+      })
+      .catch(() => {});
+  }, [projectDir, setFailures, clearFailures]);
 
   // Watcher lifecycle tied to the opened project.
   useEffect(() => {
@@ -128,6 +164,10 @@ export default function App() {
       title: "Open project",
     });
     if (typeof selected === "string" && selected.length > 0) {
+      // Scope failures to the newly-opened project. This intentionally
+      // resets the prior project's failures view.
+      void api.clearFailuresLog(selected).catch(() => {});
+      clearFailures();
       setProjectDir(selected);
       resetMessages();
       replaceEvents([
@@ -144,7 +184,7 @@ export default function App() {
         pushError(`Failed to persist last project: ${String(e)}`);
       });
     }
-  }, [setProjectDir, resetMessages, replaceEvents, pushError]);
+  }, [setProjectDir, resetMessages, replaceEvents, pushError, clearFailures]);
 
   // Scenario-A §9.2 F-8: on boot, auto-restore the last-opened project
   // if we have one and it still exists on disk. A single `list_dir` on
@@ -163,6 +203,8 @@ export default function App() {
         }
         if (cancelled) return;
         setProjectDir(last);
+        void api.clearFailuresLog(last).catch(() => {});
+        clearFailures();
         replaceEvents([
           {
             kind: "info",
@@ -244,94 +286,153 @@ export default function App() {
       </header>
 
       <div
-        className={`panes panes-4${
-          explorerOpen ? "" : " panes-explorer-collapsed"
-        }${debugOpen ? "" : " panes-debug-collapsed"}`}
+        className="layout"
+        style={{
+          gridTemplateRows: debugOpen
+            ? `1fr ${bottomPanelHeight}px`
+            : "1fr 36px",
+        }}
       >
-        <section
-          className={`pane pane-explorer${
-            explorerOpen ? "" : " pane-collapsed"
-          }`}
-          aria-label="Explorer"
+        <div
+          className={`panes panes-3${explorerOpen ? "" : " panes-explorer-collapsed"}`}
         >
-          <div className="pane-header">
-            <button
-              className="pane-toggle"
-              onClick={toggleExplorer}
-              aria-expanded={explorerOpen}
-              aria-label={
-                explorerOpen ? "collapse explorer" : "expand explorer"
-              }
-              title={explorerOpen ? "Collapse" : "Expand"}
-              type="button"
-            >
-              <span className="pane-caret" aria-hidden>
-                {explorerOpen ? "▾" : "▸"}
-              </span>
-              Explorer
-            </button>
-          </div>
-          {explorerOpen && (
-            <div className="pane-body">
-              {projectDir ? (
-                <Explorer
-                  key={projectDir + ":" + fsTick}
-                  projectDir={projectDir}
-                />
-              ) : (
-                <div className="empty-state">
-                  Open a project folder to see its files.
-                </div>
-              )}
+          <section
+            className={`pane pane-explorer${explorerOpen ? "" : " pane-collapsed"}`}
+            aria-label="Explorer"
+          >
+            <div className="pane-header">
+              <button
+                className="pane-toggle"
+                onClick={toggleExplorer}
+                aria-expanded={explorerOpen}
+                aria-label={explorerOpen ? "collapse explorer" : "expand explorer"}
+                title={explorerOpen ? "Collapse" : "Expand"}
+                type="button"
+              >
+                <span className="pane-caret" aria-hidden>
+                  {explorerOpen ? "▾" : "▸"}
+                </span>
+                Explorer
+              </button>
             </div>
-          )}
-        </section>
+            {explorerOpen && (
+              <div className="pane-body">
+                {projectDir ? (
+                  <Explorer key={projectDir + ":" + fsTick} projectDir={projectDir} />
+                ) : (
+                  <div className="empty-state">
+                    Open a project folder to see its files.
+                  </div>
+                )}
+              </div>
+            )}
+          </section>
 
-        <section className="pane" aria-label="Goal and tasks">
-          <div className="pane-header">Goal &amp; Tasks</div>
-          <div className="pane-body">
-            <TaskPanel projectDir={projectDir} disabled={chatDisabled} />
-          </div>
-        </section>
+          <section className="pane" aria-label="Goal and tasks">
+            <div className="pane-header">Goal &amp; Tasks</div>
+            <div className="pane-body">
+              <TaskPanel projectDir={projectDir} disabled={chatDisabled} />
+            </div>
+          </section>
 
-        <section className="pane" aria-label="Chat">
-          <div className="pane-header">Chat</div>
-          <div className="pane-body chat">
-            <Chat projectDir={projectDir} disabled={chatDisabled} />
-          </div>
-        </section>
+          <section className="pane" aria-label="Chat">
+            <div className="pane-header">Chat</div>
+            <div className="pane-body chat">
+              <Chat projectDir={projectDir} disabled={chatDisabled} />
+            </div>
+          </section>
+        </div>
 
         <section
-          className={`pane pane-debug${debugOpen ? "" : " pane-collapsed"}`}
-          aria-label="Debug"
+          className={`pane bottom-panel${debugOpen ? "" : " bottom-collapsed"}`}
+          style={debugOpen ? { height: bottomPanelHeight } : undefined}
+          aria-label={
+            bottomTab === "debug"
+              ? "Debug"
+              : bottomTab === "terminal"
+                ? "Terminal"
+                : "Failures"
+          }
         >
-          <div className="pane-header">
+          {debugOpen && (
+            <div
+              className="bottom-panel-resize-handle"
+              onMouseDown={(e) => {
+                e.preventDefault();
+                const startY = e.clientY;
+                const startHeight = bottomPanelHeight;
+                const onMove = (moveEvent: MouseEvent) => {
+                  const delta = startY - moveEvent.clientY;
+                  const newHeight = Math.max(100, Math.min(600, startHeight + delta));
+                  setBottomPanelHeight(newHeight);
+                };
+                const onUp = () => {
+                  window.removeEventListener("mousemove", onMove);
+                  window.removeEventListener("mouseup", onUp);
+                };
+                window.addEventListener("mousemove", onMove);
+                window.addEventListener("mouseup", onUp);
+              }}
+            />
+          )}
+          <div className="pane-header bottom-header">
             <button
               className="pane-toggle"
               onClick={toggleDebug}
               aria-expanded={debugOpen}
-              aria-label={debugOpen ? "collapse debug panel" : "expand debug panel"}
+              aria-label={debugOpen ? "collapse bottom panel" : "expand bottom panel"}
               title={debugOpen ? "Collapse" : "Expand"}
               type="button"
             >
               <span className="pane-caret" aria-hidden>
                 {debugOpen ? "▾" : "▸"}
               </span>
+              Panel
+            </button>
+
+            <button
+              className={
+                "bottom-tab" + (bottomTab === "debug" ? " bottom-tab-active" : "")
+              }
+              onClick={() => setBottomTab("debug")}
+              type="button"
+            >
               Debug
             </button>
-            {events.length > 0 && (
+            <button
+              className={
+                "bottom-tab" +
+                (bottomTab === "terminal" ? " bottom-tab-active" : "")
+              }
+              onClick={() => setBottomTab("terminal")}
+              type="button"
+            >
+              Terminal
+            </button>
+
+            <button
+              className={
+                "bottom-tab" + (bottomTab === "failures" ? " bottom-tab-active" : "")
+              }
+              onClick={() => setBottomTab("failures")}
+              type="button"
+            >
+              Failures
+              {failures.length > 0 ? ` (${failures.length})` : ""}
+            </button>
+
+            {bottomTab === "debug" && events.length > 0 && (
               <span
                 className="pane-header-count"
-                aria-label={`${events.length} event${
-                  events.length === 1 ? "" : "s"
-                }`}
+                aria-label={`${events.length} event${events.length === 1 ? "" : "s"}`}
               >
                 {events.length}
                 {events.length >= EVENTS_CAP && "+"}
               </span>
             )}
+
             <div style={{ flex: 1 }} />
-            {debugOpen && (
+            {debugOpen && bottomTab === "debug" && (
               <button
                 onClick={clearEvents}
                 style={{ fontSize: 10, padding: "2px 6px" }}
@@ -339,10 +440,28 @@ export default function App() {
                 clear
               </button>
             )}
+            {debugOpen && bottomTab === "failures" && projectDir && (
+              <button
+                onClick={() => {
+                  void api.clearFailuresLog(projectDir).catch(() => {});
+                  clearFailures();
+                }}
+                style={{ fontSize: 10, padding: "2px 6px" }}
+              >
+                clear
+              </button>
+            )}
           </div>
+
           {debugOpen && (
-            <div className="pane-body">
-              <Execution events={events} />
+            <div className="pane-body bottom-body">
+              {bottomTab === "debug" ? (
+                <Execution events={events} />
+              ) : bottomTab === "terminal" ? (
+                <TerminalManager projectDir={projectDir} />
+              ) : (
+                <FailuresPanel failures={failures} />
+              )}
             </div>
           )}
         </section>
@@ -357,6 +476,35 @@ export default function App() {
         />
       )}
       <ConfirmCmdOverlay />
+    </div>
+  );
+}
+
+function FailuresPanel({ failures }: { failures: FailureLogEntry[] }) {
+  if (!failures || failures.length === 0) {
+    return <div className="empty-state">No failures for this project yet.</div>;
+  }
+  return (
+    <div className="task-failures" style={{ marginTop: 0 }}>
+      <div className="task-failures-header">Recent failures ({failures.length})</div>
+      <ul className="task-failures-list">
+        {failures.map((f) => (
+          <li key={`${f.task_id}-${f.at}`} className="task-failure-row">
+            <span className="task-failure-time">
+              {new Date(f.at * 1000).toLocaleTimeString()}
+            </span>
+            <span className="task-failure-id" title={f.task_id}>
+              {f.task_id.slice(0, 8)}
+            </span>
+            <span
+              className="task-failure-msg"
+              title={f.error.length > 200 ? f.error : undefined}
+            >
+              {f.error.length > 120 ? f.error.slice(0, 119) + "…" : f.error}
+            </span>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

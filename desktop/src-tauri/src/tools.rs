@@ -510,6 +510,169 @@ pub async fn run_cmd(
     run_cmd_impl(&project_dir, &cmd, timeout_ms.unwrap_or(30_000), None).await
 }
 
+/// Streaming shell runner. Emits `terminal:output` events with stdout/stderr
+/// in real-time, then returns the final result.
+#[tauri::command]
+pub async fn run_cmd_stream(
+    app: AppHandle,
+    state: tauri::State<'_, AppState>,
+    terminal_id: String,
+    project_dir: String,
+    cmd: String,
+    timeout_ms: Option<u64>,
+) -> Result<RunCmdResult, String> {
+    let root = std::path::Path::new(&project_dir)
+        .canonicalize()
+        .map_err(|e| format!("invalid project root: {e}"))?;
+
+    let (program, args) = if cfg!(windows) {
+        ("cmd", vec!["/C".to_string(), cmd])
+    } else {
+        ("sh", vec!["-c".to_string(), cmd])
+    };
+
+    let mut builder = tokio::process::Command::new(program);
+    builder
+        .args(&args)
+        .current_dir(&root)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped());
+
+    #[cfg(windows)]
+    {
+        const CREATE_NEW_PROCESS_GROUP: u32 = 0x0000_0200;
+        const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+        builder.creation_flags(CREATE_NEW_PROCESS_GROUP | CREATE_NO_WINDOW);
+    }
+
+    let mut child = builder.spawn().map_err(|e| e.to_string())?;
+    let _child_pid = child.id();
+
+    if let Some(pid) = _child_pid {
+        let mut map = state.terminal_pids.lock().await;
+        map.insert(terminal_id.clone(), pid);
+    }
+
+    let mut stdout_pipe = child.stdout.take();
+    let mut stderr_pipe = child.stderr.take();
+
+    let timeout_ms = timeout_ms.unwrap_or(30_000);
+    let timeout_dur = Duration::from_millis(timeout_ms);
+
+    let mut out_str = String::new();
+    let mut err_str = String::new();
+    let mut out_buf = [0u8; 512];
+    let mut err_buf = [0u8; 512];
+
+    loop {
+        tokio::select! {
+            r = tokio::time::timeout(timeout_dur, child.wait()) => {
+                // Process finished, drain remaining output
+                let exit_code = r
+                    .ok()
+                    .and_then(|s| s.ok())
+                    .map(|s| s.code().unwrap_or(-1))
+                    .unwrap_or(-1);
+                if let Some(ref mut so) = stdout_pipe {
+                    while let Ok(n) = so.read(&mut out_buf).await {
+                        if n == 0 { break; }
+                        let text = String::from_utf8_lossy(&out_buf[..n]).to_string();
+                        out_str.push_str(&text);
+                        let _ = app.emit("terminal:output", serde_json::json!({ "terminal_id": terminal_id, "stream": "stdout", "data": text }));
+                    }
+                }
+                if let Some(ref mut se) = stderr_pipe {
+                    while let Ok(n) = se.read(&mut err_buf).await {
+                        if n == 0 { break; }
+                        let text = String::from_utf8_lossy(&err_buf[..n]).to_string();
+                        err_str.push_str(&text);
+                        let _ = app.emit("terminal:output", serde_json::json!({ "terminal_id": terminal_id, "stream": "stderr", "data": text }));
+                    }
+                }
+                // Emit done event
+                {
+                    let mut map = state.terminal_pids.lock().await;
+                    map.remove(&terminal_id);
+                }
+                let _ = app.emit("terminal:done", serde_json::json!({ "terminal_id": terminal_id, "exit_code": exit_code }));
+                return Ok(RunCmdResult {
+                    stdout: out_str,
+                    stderr: err_str,
+                    exit_code,
+                });
+            }
+            n = async {
+                if let Some(ref mut so) = stdout_pipe {
+                    so.read(&mut out_buf).await
+                } else {
+                    Ok(0)
+                }
+            } => {
+                if let Ok(n) = n {
+                    if n > 0 {
+                        let text = String::from_utf8_lossy(&out_buf[..n]).to_string();
+                        out_str.push_str(&text);
+                        let _ = app.emit("terminal:output", serde_json::json!({ "terminal_id": terminal_id, "stream": "stdout", "data": text }));
+                    }
+                }
+            }
+            n = async {
+                if let Some(ref mut se) = stderr_pipe {
+                    se.read(&mut err_buf).await
+                } else {
+                    Ok(0)
+                }
+            } => {
+                if let Ok(n) = n {
+                    if n > 0 {
+                        let text = String::from_utf8_lossy(&err_buf[..n]).to_string();
+                        err_str.push_str(&text);
+                        let _ = app.emit("terminal:output", serde_json::json!({ "terminal_id": terminal_id, "stream": "stderr", "data": text }));
+                    }
+                }
+            }
+        }
+    }
+}
+
+#[tauri::command]
+pub async fn terminal_kill(
+    state: tauri::State<'_, AppState>,
+    terminal_id: String,
+) -> Result<(), String> {
+    let pid = {
+        let mut map = state.terminal_pids.lock().await;
+        map.remove(&terminal_id)
+    };
+
+    let Some(pid) = pid else {
+        return Ok(());
+    };
+
+    #[cfg(windows)]
+    {
+        // `taskkill /T /F` = kill process tree.
+        let _ = tokio::process::Command::new("taskkill")
+            .arg("/T")
+            .arg("/F")
+            .arg("/PID")
+            .arg(pid.to_string())
+            .status()
+            .await;
+        return Ok(());
+    }
+
+    #[cfg(unix)]
+    {
+        let _ = tokio::process::Command::new("kill")
+            .arg("-TERM")
+            .arg(pid.to_string())
+            .status()
+            .await;
+        return Ok(());
+    }
+}
+
 /// Resolves a pending `ai:confirm_request`. Used by the UI's confirm modal.
 ///
 /// `async` so it can `await` the tokio `pending_confirms` lock — the map
@@ -586,7 +749,8 @@ async fn run_cmd_impl(
         // `creation_flags` is an inherent method on
         // `tokio::process::Command` on Windows; no trait import.
         const CREATE_NEW_PROCESS_GROUP: u32 = 0x0000_0200;
-        builder.creation_flags(CREATE_NEW_PROCESS_GROUP);
+        const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+        builder.creation_flags(CREATE_NEW_PROCESS_GROUP | CREATE_NO_WINDOW);
     }
 
     let mut child = builder.spawn().map_err(|e| e.to_string())?;

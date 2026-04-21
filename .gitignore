@@ -9,3 +9,5 @@
 /desktop/frontend/node_modules/
 /desktop/frontend/dist/
 /desktop/dist/
+build.log
+desktop/src-tauri/build.log

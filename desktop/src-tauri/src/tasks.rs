@@ -344,3 +344,11 @@ pub fn load_failures_log(project_dir: String) -> Result<Value, String> {
         .cloned()
         .unwrap_or(Value::Array(Vec::new())))
 }
+
+#[tauri::command]
+pub fn clear_failures_log(project_dir: String) -> Result<(), String> {
+    let mut mem = read_memory(&project_dir);
+    let obj = mem.as_object_mut().unwrap();
+    obj.insert("failures_log".into(), Value::Array(Vec::new()));
+    crate::memory::save_memory_sync(&project_dir, &mem)
+}

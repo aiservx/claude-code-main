@@ -66,6 +66,10 @@ pub struct AppState {
     /// warning. The lock is only held for the microsecond-scale
     /// `insert`/`remove` so the async lock's cost is negligible.
     pub pending_confirms: AsyncMutex<HashMap<String, oneshot::Sender<bool>>>,
+
+    /// Active terminal processes keyed by `terminal_id`. Used by the
+    /// in-app Terminal tabs to support concurrent runs and per-tab stop.
+    pub terminal_pids: AsyncMutex<HashMap<String, u32>>,
 }
 
 impl AppState {
@@ -132,6 +136,7 @@ pub fn run() {
             goal_cancelled: cancel::CancelToken::new(),
             goal_running: Mutex::new(false),
             pending_confirms: AsyncMutex::new(HashMap::new()),
+            terminal_pids: AsyncMutex::new(HashMap::new()),
         })
         .invoke_handler(tauri::generate_handler![
             fs_ops::list_dir,
@@ -140,6 +145,8 @@ pub fn run() {
             watcher::watch_dir,
             watcher::unwatch_dir,
             tools::run_cmd,
+            tools::run_cmd_stream,
+            tools::terminal_kill,
             tools::confirm_cmd,
             ai::send_chat,
             ai::cancel_chat,
@@ -158,6 +165,7 @@ pub fn run() {
             project_scan::scan_project_cmd,
             tasks::load_task_tree,
             tasks::load_failures_log,
+            tasks::clear_failures_log,
         ])
         .setup(|app| {
             if let Some(win) = app.get_webview_window("main") {

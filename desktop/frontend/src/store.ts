@@ -18,6 +18,7 @@
  */
 import { create } from "zustand";
 import type { AgentRole, ChatMessage, ExecutionEvent } from "./types";
+import type { FailureLogEntry } from "./types";
 
 /**
  * Maximum number of entries the in-memory execution-event ring buffer
@@ -25,6 +26,7 @@ import type { AgentRole, ChatMessage, ExecutionEvent } from "./types";
  * enforced inline in `App.tsx`.
  */
 export const EVENTS_CAP = 500;
+export const FAILURES_CAP = 50;
 
 export type HealthStatus = boolean | null;
 
@@ -52,6 +54,9 @@ export interface AppState {
   // --- execution / debug log (ring-buffered) ---
   events: ExecutionEvent[];
 
+  // --- failures log (project-scoped, capped) ---
+  failures: FailureLogEntry[];
+
   // --- pre-execution planning chip (F-2) ---
   goalPlanning: GoalPlanningPhase;
 
@@ -59,6 +64,7 @@ export interface AppState {
   debugOpen: boolean;
   explorerOpen: boolean;
   settingsOpen: boolean;
+  bottomPanelHeight: number;
 
   // --- actions ---
   setProjectDir: (dir: string | null) => void;
@@ -80,11 +86,16 @@ export interface AppState {
   replaceEvents: (events: ExecutionEvent[]) => void;
   clearEvents: () => void;
 
+  setFailures: (failures: FailureLogEntry[]) => void;
+  pushFailure: (f: FailureLogEntry) => void;
+  clearFailures: () => void;
+
   setDebugOpen: (v: boolean) => void;
   setExplorerOpen: (v: boolean) => void;
   toggleDebug: () => void;
   toggleExplorer: () => void;
   setSettingsOpen: (v: boolean) => void;
+  setBottomPanelHeight: (v: number) => void;
 }
 
 /**
@@ -99,10 +110,12 @@ export const useAppStore = create<AppState>((set) => ({
   executorOk: null,
   messages: [],
   events: [],
+  failures: [],
   goalPlanning: null,
   debugOpen: false,
   explorerOpen: true,
   settingsOpen: false,
+  bottomPanelHeight: 240,
 
   setProjectDir: (dir) => set({ projectDir: dir }),
   bumpFsTick: () => set((s) => ({ fsTick: s.fsTick + 1 })),
@@ -150,9 +163,19 @@ export const useAppStore = create<AppState>((set) => ({
   replaceEvents: (events) => set({ events }),
   clearEvents: () => set({ events: [] }),
 
+  setFailures: (failures) =>
+    set({ failures: failures.slice(-FAILURES_CAP).sort((a, b) => b.at - a.at) }),
+  pushFailure: (f) =>
+    set((s) => ({
+      failures: [f, ...s.failures].slice(0, FAILURES_CAP),
+      debugOpen: true,
+    })),
+  clearFailures: () => set({ failures: [] }),
+
   setDebugOpen: (v) => set({ debugOpen: v }),
   setExplorerOpen: (v) => set({ explorerOpen: v }),
   toggleDebug: () => set((s) => ({ debugOpen: !s.debugOpen })),
   toggleExplorer: () => set((s) => ({ explorerOpen: !s.explorerOpen })),
   setSettingsOpen: (v) => set({ settingsOpen: v }),
+  setBottomPanelHeight: (v) => set({ bottomPanelHeight: v }),
 }));

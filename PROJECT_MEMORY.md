@@ -284,6 +284,58 @@ from `OpenRouter_Categorized_Models.csv`:
 Selecting a model from either tab writes the correct OpenRouter `modelId`
 (`provider/model[:tag]`) into `settings.openrouter_model`.
 
+### Terminal pane (in-app command runner)
+
+The main layout now includes a **bottom-docked panel** with tabs (**Debug** / **Terminal**)
+so you can run project commands inside the app (instead of spawning a separate `cmd.exe` window)
+and follow the output in real time.
+
+- The UI calls `api.runCmdStream(...)` and subscribes to backend events.
+- The Tauri backend exposes `tools::run_cmd_stream` which emits:
+  - `terminal:output` `{ stream: "stdout"|"stderr", data: string }`
+  - `terminal:done` `{ exit_code: number }`
+
+This is **user-initiated** command execution (separate from AI tool-loop `run_cmd` gating).
+
+The Terminal tab supports **multiple concurrent terminal sessions** via `TerminalManager`:
+
+- Each terminal tab has a `terminal_id`.
+- Backend events include `terminal_id` so output does not mix across tabs:
+  - `terminal:output` `{ terminal_id, stream, data }`
+  - `terminal:done` `{ terminal_id, exit_code }`
+- Each tab can be stopped via `terminal_kill(terminal_id)`.
+
+### Failures tab (project-scoped)
+
+The bottom-docked panel includes a **Failures** tab that surfaces recent executor/task
+failures for the **currently opened project only**:
+
+- Failures are captured from `task:failure_logged` and shown in a capped list.
+- The list is **reset when you open/restore a project** (it is not global across sessions).
+- A **Clear** button wipes both the in-memory list and the persisted `failures_log` for
+  the project.
+
+### Bottom panel (manual resize)
+
+The bottom-docked panel (Debug / Terminal / Failures) supports **manual resizing**
+(Windsurf-style): drag the thin handle at the top edge of the panel to adjust its height.
+
+- Height is stored in Zustand as `bottomPanelHeight`.
+- The panel height is applied by dynamically setting the `.layout` grid’s
+  `gridTemplateRows` (expanded: `1fr {bottomPanelHeight}px`, collapsed: `1fr 36px`).
+- Dragging is implemented in `App.tsx` via `onMouseDown` + window `mousemove`/`mouseup`.
+
+### Windows bundling (installer output)
+
+To produce full Windows installer artifacts (not just the `target/release/*.exe` build),
+enable bundling and configure an `.ico` icon in `desktop/src-tauri/tauri.conf.json`.
+
+- Bundling must have `bundle.active: true`.
+- Provide at least one `.ico` in `bundle.icon` (e.g. `icons/icon.ico`) or bundling fails.
+- `cargo tauri build` emits installers under:
+  - `desktop/src-tauri/target/release/bundle/msi/*.msi`
+  - `desktop/src-tauri/target/release/bundle/nsis/*-setup.exe`
+
 ### Accessibility
 
 - Semantic `<header role="banner">` topbar, `<section aria-label>`
