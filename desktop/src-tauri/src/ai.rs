@@ -1662,7 +1662,22 @@ pub(crate) async fn run_chat_turn(
         }
 
         // ---- Phase 3: Reviewer (optional, at most one corrective retry) ----
-        if !settings.reviewer_enabled || final_assistant.is_empty() || reviewer_retries_left == 0 {
+        //
+        // We also skip the reviewer entirely in `json_mode` turns.
+        // `plan_goal` (controller.rs:742) runs the executor with
+        // `json_mode = true` and no tool schema (ai.rs:1489) — its
+        // only job is to return a plan JSON string. An OK/NEEDS_FIX
+        // verdict over pure JSON is meaningless at best, and at
+        // worst the reviewer produces `Unknown` and emits
+        // `ai:executor_unparsed` below at line ~1751, which would
+        // render the same "try a larger executor model" warning
+        // that PR #13's guard at line 1540 was meant to suppress
+        // (PR #15 Devin Review).
+        if !settings.reviewer_enabled
+            || final_assistant.is_empty()
+            || reviewer_retries_left == 0
+            || json_mode
+        {
             break 'outer;
         }
         let (r_provider, _) = resolve_provider(&settings, Role::Reviewer);
